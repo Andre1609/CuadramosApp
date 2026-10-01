@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../MultiTasks"
+		},
+		{
+			"path": "../crm-solutel"
+		}
+	],
+	"settings": {
+		"java.compile.nullAnalysis.mode": "disabled",
+		"liveServer.settings.multiRootWorkspaceName": "MultiTasks"
+	}
+}

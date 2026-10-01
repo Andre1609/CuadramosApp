@@ -1,37 +1,24 @@
-import React from 'react';
-import { SafeAreaView, Text, StyleSheet, View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import PantallaIngreso from './src/screens/PantallaIngreso.tsx';
+import PantallaPrincipal from './src/screens/PantallaPrincipal.tsx';
+import NuevaTransaccion from './src/screens/NuevaTransaccion.tsx';
+
+const Stack = createStackNavigator();
 
 const App = () => {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Hey Primer Emulador</Text>
-        <Text style={styles.subtitle}>Mi entorno y carpetas están listos.</Text>
-      </View>
-    </SafeAreaView>
+    <NavigationContainer>
+      <Stack.Navigator 
+        initialRouteName="Ingreso"
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name="Ingreso" component={PantallaIngreso} />
+        <Stack.Screen name="Principal" component={PantallaPrincipal} />
+        <Stack.Screen name="NuevaTransaccion" component={NuevaTransaccion} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 };
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333333',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666666',
-    marginTop: 8,
-  },
-});
 
 export default App;
