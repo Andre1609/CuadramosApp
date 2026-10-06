@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ScrollVi
 import CampoTexto from '../components/atoms/CampoTexto.tsx';
 import BotonAtomo from '../components/atoms/BotonAtomo.tsx';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface PropiedadesPantalla {
   navigation: any;
 }
@@ -152,7 +151,7 @@ const estilos = StyleSheet.create({
       color: '#666666',
   },
   opcionSeleccionadaIngreso: {
-      borderColor: '#28a745', // Verde éxito
+      borderColor: '#28a745', 
       backgroundColor: '#e8f5e9',
       borderWidth: 2,
   },
@@ -161,7 +160,7 @@ const estilos = StyleSheet.create({
       fontWeight: 'bold',
   },
   opcionSeleccionadaGasto: {
-      borderColor: '#dc3545', // Rojo peligro
+      borderColor: '#dc3545', 
       backgroundColor: '#f8d7da',
       borderWidth: 2,
   },
