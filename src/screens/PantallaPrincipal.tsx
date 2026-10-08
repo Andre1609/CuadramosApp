@@ -5,20 +5,20 @@ import { BlurView } from '@react-native-community/blur';
 import { estilos } from '../styles/estilosPrincipal';
 
 
-const misCuentasData = [
-  { id: 1, nombre: 'Mi cuenta principal', tipo: 'Cuenta de ahorros', saldo: '3,850.00', colorFondo: '#FFF0F5', colorIcono: '#C8005B', icono: 'wallet-outline', tieneMovimientos: true },
-  { id: 2, nombre: 'Mis metas', tipo: 'Cuenta de ahorros', saldo: '1,200.00', colorFondo: '#FFF9E6', colorIcono: '#A67C00', icono: 'target', tieneMovimientos: false },
-  { id: 3, nombre: 'Del día a día', tipo: 'Cuenta de ahorros', saldo: '650.00', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', icono: 'credit-card-outline', tieneMovimientos: true },
-];
-
-const ultimosMovimientosData = [
-  { id: 1, titulo: 'Mercado de la semana', categoria: 'Alimentación', fechaDia: '6 de oct', fechaAnio: '2026', monto: '- S/ 185.00', tipo: 'Egreso', icono: 'shopping-outline', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', colorMonto: '#C8005B' },
-  { id: 2, titulo: 'Proyecto freelance', categoria: 'Trabajo', fechaDia: '6 de oct', fechaAnio: '2026', monto: '+ S/ 350.00', tipo: 'Ingreso', icono: 'arrow-bottom-left', colorFondo: '#E6F4EA', colorIcono: '#1E8E3E', colorMonto: '#1E8E3E' },
-  { id: 3, titulo: 'Un cafecito y algo más', categoria: 'Comida y bebida', fechaDia: '6 de oct', fechaAnio: '2026', monto: '- S/ 18.50', tipo: 'Egreso', icono: 'coffee-outline', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', colorMonto: '#C8005B' },
-  { id: 4, titulo: 'Arriendo de octubre', categoria: 'Hogar', fechaDia: '5 de oct', fechaAnio: '2026', monto: '- S/ 1,200.00', tipo: 'Egreso', icono: 'home-outline', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', colorMonto: '#C8005B' }
-];
+import { useFinanzas } from '../context/FinanzasContext';
+import { formatoMonto, movimientoVisual, resumenMes } from '../utils/finanzas';
+import { cuentas } from '../types/finanzas';
 
 const PantallaPrincipal = ({ navigation }: any) => {
+  const { operaciones, cargando, error, recargar } = useFinanzas();
+  const resumen = resumenMes(operaciones);
+  const misCuentasData = cuentas.map(cuenta => {
+    const movimientos = operaciones.filter(op => op.cuentaId === cuenta.id);
+    const centimos = movimientos.reduce((total, op) => total + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos), 0);
+    return { ...cuenta, tipo: 'Cuenta local', saldo: formatoMonto(centimos), centimos, tieneMovimientos: movimientos.length > 0 };
+  });
+  const ultimosMovimientosData = operaciones.slice(0, 4).map(movimientoVisual);
+  const total = misCuentasData.reduce((suma, cuenta) => suma + cuenta.centimos, 0);
   const [saldoOculto, setSaldoOculto] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [cuentaActiva, setCuentaActiva] = useState<any>(null);
@@ -36,7 +36,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={estilos.areaSegura}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
+      <StatusBar barStyle="dark-content" />
       
       <ScrollView contentContainerStyle={estilos.contenedorScroll}>
         
@@ -81,7 +81,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
           <View style={estilos.contenedorMonto}>
             <Text style={estilos.simboloMoneda}>S/</Text>
             <Text style={estilos.montoTotal}>
-              {saldoOculto ? '• • • • • • •' : '5,700.00'}
+              {saldoOculto ? '• • • • • • •' : formatoMonto(total)}
             </Text>
             <Text style={estilos.textoMoneda}>PEN</Text>
           </View>
@@ -171,6 +171,9 @@ const PantallaPrincipal = ({ navigation }: any) => {
             <Text style={[estilos.textoEncabezadoMov, { flex: 1.2, textAlign: 'right' }]}>Monto</Text>
           </View>
 
+          {cargando && <Text>Cargando operaciones...</Text>}
+          {error && <TouchableOpacity onPress={() => void recargar()}><Text>{error} Toca para reintentar.</Text></TouchableOpacity>}
+          {!cargando && !error && !operaciones.length && <Text>Registra tu primera operación para comenzar.</Text>}
           {ultimosMovimientosData.map((mov) => (
             <View key={mov.id} style={estilos.filaMovimiento}>
               <View style={estilos.ladoIzquierdoMov}>
@@ -209,14 +212,14 @@ const PantallaPrincipal = ({ navigation }: any) => {
           <View style={estilos.cabeceraBalance}>
             <Text style={estilos.tituloBalance}>Tu balance del mes</Text>
             <View style={estilos.selectorMes}>
-              <Text style={estilos.textoMes}>Octubre</Text>
+              <Text style={estilos.textoMes}>{new Date().toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</Text>
             </View>
           </View>
 
           <View style={estilos.contenedorGrafico}>
             <View style={estilos.anilloGrafico}>
               <Text style={estilos.emojiGrafico}>🤩</Text>
-              <Text style={estilos.textoEstadoGrafico}>Saludable</Text>
+              <Text style={estilos.textoEstadoGrafico}>{resumen.estado}</Text>
             </View>
           </View>
 
@@ -226,7 +229,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
                 <View style={[estilos.puntoLeyenda, { backgroundColor: '#C8005B' }]} />
                 <Text style={estilos.textoLeyenda}>Ingresos</Text>
               </View>
-              <Text style={estilos.montoLeyenda}>S/ 4,550.00</Text>
+              <Text style={estilos.montoLeyenda}>S/ {formatoMonto(resumen.ingresos)}</Text>
             </View>
 
             <View style={estilos.filaLeyenda}>
@@ -234,13 +237,13 @@ const PantallaPrincipal = ({ navigation }: any) => {
                 <View style={[estilos.puntoLeyenda, { backgroundColor: '#FFB81C' }]} />
                 <Text style={estilos.textoLeyenda}>Egresos</Text>
               </View>
-              <Text style={estilos.montoLeyenda}>S/ 1,436.40</Text>
+              <Text style={estilos.montoLeyenda}>S/ {formatoMonto(resumen.egresos)}</Text>
             </View>
           </View>
 
           <View style={estilos.alertaVerde}>
             <View style={estilos.puntoVerde} />
-            <Text style={estilos.textoAlertaVerde}>¡Vas muy bien!</Text>
+            <Text style={estilos.textoAlertaVerde}>{resumen.estado}</Text>
           </View>
 
           <TouchableOpacity 
@@ -292,7 +295,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
               </View>
 
               <Text style={estilos.modalTituloCuenta}>{cuentaActiva.nombre}</Text>
-              <Text style={estilos.modalSaldoGrande}>S/ {cuentaActiva.saldo}</Text>
+              <Text style={estilos.modalSaldoGrande}>S/ {misCuentasData.find(cuenta => cuenta.id === cuentaActiva.id)?.saldo}</Text>
 
               <View style={estilos.modalEncabezadoTabla}>
                 <Text style={[estilos.modalTextoTabla, { flex: 2 }]}>Movimiento</Text>
@@ -300,7 +303,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
                 <Text style={[estilos.modalTextoTabla, { flex: 1, textAlign: 'right' }]}>Monto</Text>
               </View>
 
-              {!cuentaActiva.tieneMovimientos ? (
+              {!operaciones.some(op => op.cuentaId === cuentaActiva.id) ? (
                 <View style={estilos.estadoVacioContenedor}>
                   <Icon name="history" size={40} color="#CBD5E0" />
                   <Text style={estilos.textoVacioTitulo}>Por aquí aún no hay movimientos</Text>
@@ -308,7 +311,9 @@ const PantallaPrincipal = ({ navigation }: any) => {
                 </View>
               ) : (
                 <View style={estilos.estadoVacioContenedor}>
-                   <Text style={estilos.textoVacioSubtitulo}>Lista de movimientos lista para conectar...</Text>
+                   <ScrollView>{operaciones.filter(op => op.cuentaId === cuentaActiva.id).map(movimientoVisual).map(mov => (
+                     <Text key={mov.id} style={estilos.textoVacioSubtitulo}>{mov.titulo} · {mov.fechaDia} {mov.fechaAnio} · {mov.monto}</Text>
+                   ))}</ScrollView>
                 </View>
               )}
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import CampoTexto from '../components/atoms/CampoTexto.tsx';
 import BotonAtomo from '../components/atoms/BotonAtomo.tsx';
+import React from 'react';
 
 interface PropiedadesPantalla {
   navigation: any;
@@ -46,14 +47,14 @@ const NuevaTransaccion = ({ navigation }: PropiedadesPantalla) => {
 
         <Text style={estilos.etiqueta}>¿Qué registramos?</Text>
         <View style={estilos.contenedorTipo}>
-          <TouchableOpacity 
-            style={[estilos.opcionTipo, tipo === 'ingreso' && estilos.opcionSeleccionadaIngreso]} 
+          <TouchableOpacity
+            style={[estilos.opcionTipo, tipo === 'ingreso' && estilos.opcionSeleccionadaIngreso]}
             onPress={() => setTipo('ingreso')}
           >
             <Text style={[estilos.textoTipo, tipo === 'ingreso' && estilos.textoSeleccionadoIngreso]}>💰 Ingreso</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={[estilos.opcionTipo, tipo === 'gasto' && estilos.opcionSeleccionadaGasto]} 
+          <TouchableOpacity
+            style={[estilos.opcionTipo, tipo === 'gasto' && estilos.opcionSeleccionadaGasto]}
             onPress={() => setTipo('gasto')}
           >
             <Text style={[estilos.textoTipo, tipo === 'gasto' && estilos.textoSeleccionadoGasto]}>💸 Gasto</Text>
@@ -61,22 +62,22 @@ const NuevaTransaccion = ({ navigation }: PropiedadesPantalla) => {
         </View>
 
         <Text style={estilos.etiqueta}>Descripción</Text>
-        <CampoTexto 
-          placeholder="Ej. Pago de Salario o Compra de mercadería" 
+        <CampoTexto
+          placeholder="Ej. Pago de Salario o Compra de mercadería"
           value={descripcion}
           onChangeText={setDescripcion}
         />
 
         <Text style={estilos.etiqueta}>Monto (S/)</Text>
-        <CampoTexto 
-          placeholder="Ej. 1500.00" 
-          keyboardType="numeric" 
+        <CampoTexto
+          placeholder="Ej. 1500.00"
+          keyboardType="numeric"
           value={monto}
           onChangeText={setMonto}
         />
 
-        <BotonAtomo 
-          texto="Guardar Registro" 
+        <BotonAtomo
+          texto="Guardar Registro"
           onPress={guardarTransaccion}
           style={estilos.botonGuardar}
         />
@@ -88,7 +89,7 @@ const NuevaTransaccion = ({ navigation }: PropiedadesPantalla) => {
 const estilos = StyleSheet.create({
   areaSegura: {
     flex: 1,
-    backgroundColor: '#F4F4F4', 
+    backgroundColor: '#F4F4F4',
   },
   contenedorSuperior: {
       flexDirection: 'row',
@@ -104,7 +105,7 @@ const estilos = StyleSheet.create({
       marginRight: 15,
   },
   textoVolver: {
-      color: '#C8005B', 
+      color: '#C8005B',
       fontSize: 16,
       fontWeight: 'bold',
   },
@@ -151,7 +152,7 @@ const estilos = StyleSheet.create({
       color: '#666666',
   },
   opcionSeleccionadaIngreso: {
-      borderColor: '#28a745', 
+      borderColor: '#28a745',
       backgroundColor: '#e8f5e9',
       borderWidth: 2,
   },
@@ -160,7 +161,7 @@ const estilos = StyleSheet.create({
       fontWeight: 'bold',
   },
   opcionSeleccionadaGasto: {
-      borderColor: '#dc3545', 
+      borderColor: '#dc3545',
       backgroundColor: '#f8d7da',
       borderWidth: 2,
   },

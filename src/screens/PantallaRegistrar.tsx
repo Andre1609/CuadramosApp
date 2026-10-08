@@ -1,30 +1,45 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, TextInput, ScrollView, StatusBar, Modal } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, TextInput, ScrollView, StatusBar, Modal, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { estilosRegistrar } from '../styles/estilosRegistrar.ts';
 
-const cuentas = [
-  'Mi cuenta principal · S/ 3,850.00',
-  'Mis metas · S/ 1,200.00',
-  'Del día a día · S/ 650.00'
-];
-
-const categorias = [
-  'Salario',
-  'Trabajo',
-  'Otros'
-];
+import { cuentas, categoriasPorTipo, TipoOperacion } from '../types/finanzas';
+import { useFinanzas } from '../context/FinanzasContext';
+import { montoACentimos } from '../utils/finanzas';
 
 const PantallaRegistrar = () => {
-  const [tipoOperacion, setTipoOperacion] = useState('egreso');
+  const [tipoOperacion, setTipoOperacion] = useState<TipoOperacion>('egreso');
   const [monto, setMonto] = useState('');
   const [concepto, setConcepto] = useState('');
-  const [cuentaSeleccionada, setCuentaSeleccionada] = useState(cuentas[0]);
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(categorias[2]);
+  const [cuentaSeleccionada, setCuentaSeleccionada] = useState(cuentas[0].id);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Otros');
   const [dropdownAbierto, setDropdownAbierto] = useState<string | null>(null);
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
-  const [modalMetaVisible, setModalMetaVisible] = useState(true); 
+  const [modalMetaVisible, setModalMetaVisible] = useState(false); 
   const [metaMes, setMetaMes] = useState('');
+
+  const { registrar, cargando, error, recargar } = useFinanzas();
+  const [guardando, setGuardando] = useState(false);
+  const categorias = categoriasPorTipo[tipoOperacion];
+  const cambiarTipo = (tipo: TipoOperacion) => {
+    setTipoOperacion(tipo);
+    setCategoriaSeleccionada('Otros');
+    setDropdownAbierto(null);
+  };
+  const guardar = async () => {
+    if (guardando) { return; }
+    setGuardando(true);
+    try {
+      if (!concepto.trim()) { throw new Error('Escribe el concepto de la operación.'); }
+      await registrar({ tipo: tipoOperacion, montoCentimos: montoACentimos(monto), concepto,
+        cuentaId: cuentaSeleccionada, categoria: categoriaSeleccionada });
+      setMonto('');
+      setConcepto('');
+      Alert.alert('Operación guardada', 'Ya puedes verla en Inicio, Historial y Balance.');
+    } catch (fallo) {
+      Alert.alert('No se pudo guardar', fallo instanceof Error ? fallo.message : 'Inténtalo nuevamente.');
+    } finally { setGuardando(false); }
+  };
 
   const toggleDropdown = (tipo: string) => {
     if (dropdownAbierto === tipo) {
@@ -46,9 +61,9 @@ const PantallaRegistrar = () => {
 
   return (
     <SafeAreaView style={estilosRegistrar.areaSegura}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
+      <StatusBar barStyle="dark-content" />
       
-      <View style={[estilosRegistrar.contenedorScroll, { flex: 1 }]}>
+      <ScrollView contentContainerStyle={estilosRegistrar.contenedorScroll} keyboardShouldPersistTaps="handled">
         <View style={estilosRegistrar.encabezadoSuperior}>
           <View style={estilosRegistrar.migasPan}>
             <Text style={estilosRegistrar.textoMigaInactivo}>Mi billetera  {'>'}  </Text>
@@ -74,6 +89,7 @@ const PantallaRegistrar = () => {
         </View>
 
         <View style={estilosRegistrar.tarjetaBlanca}>
+          {error && <TouchableOpacity onPress={() => void recargar()}><Text>{error} Toca para reintentar.</Text></TouchableOpacity>}
           <Text style={estilosRegistrar.etiquetaSuperior}>NUEVA OPERACIÓN</Text>
           <Text style={estilosRegistrar.tituloPrincipal}>¿Qué vamos a registrar?</Text>
 
@@ -84,7 +100,7 @@ const PantallaRegistrar = () => {
                 estilosRegistrar.tabIngreso, 
                 tipoOperacion === 'ingreso' ? estilosRegistrar.tabIngresoActivo : estilosRegistrar.tabInactivo
               ]}
-              onPress={() => setTipoOperacion('ingreso')}
+              onPress={() => cambiarTipo('ingreso')}
             >
               <Icon 
                 name="arrow-bottom-left" 
@@ -102,7 +118,7 @@ const PantallaRegistrar = () => {
                 estilosRegistrar.tabEgreso, 
                 tipoOperacion === 'egreso' ? estilosRegistrar.tabEgresoActivo : estilosRegistrar.tabInactivo
               ]}
-              onPress={() => setTipoOperacion('egreso')}
+              onPress={() => cambiarTipo('egreso')}
             >
               <Icon 
                 name="arrow-top-right" 
@@ -137,7 +153,7 @@ const PantallaRegistrar = () => {
               style={[estilosRegistrar.cajaInput, dropdownAbierto === 'cuentas' && estilosRegistrar.cajaInputActiva]}
               onPress={() => toggleDropdown('cuentas')}
             >
-              <Text style={estilosRegistrar.inputTexto}>{cuentaSeleccionada}</Text>
+              <Text style={estilosRegistrar.inputTexto}>{cuentas.find(cuenta => cuenta.id === cuentaSeleccionada)?.nombre}</Text>
               <Icon name={dropdownAbierto === 'cuentas' ? "chevron-up" : "chevron-down"} size={20} color="#1A202C" />
             </TouchableOpacity>
 
@@ -146,11 +162,11 @@ const PantallaRegistrar = () => {
                 {cuentas.map((cuenta, index) => (
                   <TouchableOpacity 
                     key={index} 
-                    style={[estilosRegistrar.dropdownItem, cuentaSeleccionada === cuenta && estilosRegistrar.dropdownItemActivo]}
-                    onPress={() => seleccionarCuenta(cuenta)}
+                    style={[estilosRegistrar.dropdownItem, cuentaSeleccionada === cuenta.id && estilosRegistrar.dropdownItemActivo]}
+                    onPress={() => seleccionarCuenta(cuenta.id)}
                   >
-                    <Text style={cuentaSeleccionada === cuenta ? estilosRegistrar.dropdownItemTextoActivo : estilosRegistrar.dropdownItemTexto}>
-                      {cuenta}
+                    <Text style={cuentaSeleccionada === cuenta.id ? estilosRegistrar.dropdownItemTextoActivo : estilosRegistrar.dropdownItemTexto}>
+                      {cuenta.nombre}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -198,13 +214,13 @@ const PantallaRegistrar = () => {
             )}
           </View>
 
-          <TouchableOpacity style={estilosRegistrar.botonGuardar}>
+          <TouchableOpacity style={estilosRegistrar.botonGuardar} onPress={guardar} disabled={guardando || cargando || !!error}>
             <Icon name="plus" size={20} color="#FFFFFF" />
-            <Text style={estilosRegistrar.textoBotonGuardar}>Guardar operación</Text>
+            <Text style={estilosRegistrar.textoBotonGuardar}>{guardando ? 'Guardando...' : cargando ? 'Cargando...' : 'Guardar operación'}</Text>
           </TouchableOpacity>
 
         </View>
-      </View>
+      </ScrollView>
 
       <TouchableOpacity style={estilosRegistrar.botonChatbotFlotante}>
         <Icon name="robot-outline" size={28} color="#C8005B" />

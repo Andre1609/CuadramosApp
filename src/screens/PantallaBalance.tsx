@@ -3,12 +3,17 @@ import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Moda
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { estilosBalance } from '../styles/estilosBalance';
 
+import { useFinanzas } from '../context/FinanzasContext';
+import { formatoMonto, resumenMes } from '../utils/finanzas';
+
 const PantallaBalance = () => {
+  const { operaciones, cargando, error, recargar } = useFinanzas();
+  const resumen = resumenMes(operaciones);
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
 
   return (
     <SafeAreaView style={estilosBalance.areaSegura}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
+      <StatusBar barStyle="dark-content" />
       
       <ScrollView contentContainerStyle={estilosBalance.contenedorScroll} showsVerticalScrollIndicator={false}>
         
@@ -37,12 +42,14 @@ const PantallaBalance = () => {
           <Text style={estilosBalance.subtituloPantalla}>Más allá de los números, está tu tranquilidad.</Text>
         </View>
 
+        {cargando && <Text>Cargando operaciones...</Text>}
+        {error && <TouchableOpacity onPress={() => void recargar()}><Text>{error} Toca para reintentar.</Text></TouchableOpacity>}
         <View style={estilosBalance.tarjetaBalance}>
           
           <View style={estilosBalance.cabeceraSelector}>
             <Text style={estilosBalance.tituloTarjeta}>Resumen del mes</Text>
             <View style={estilosBalance.selectorMes}>
-              <Text style={estilosBalance.textoMes}>Octubre 2026</Text>
+              <Text style={estilosBalance.textoMes}>{new Date().toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</Text>
               <Icon name="chevron-down" size={16} color="#A0AEC0" />
             </View>
           </View>
@@ -50,7 +57,7 @@ const PantallaBalance = () => {
           <View style={estilosBalance.contenedorGrafico}>
             <View style={estilosBalance.anilloGrafico}>
               <Text style={estilosBalance.emojiGrafico}>🤩</Text>
-              <Text style={estilosBalance.textoEstadoGrafico}>Saludable</Text>
+              <Text style={estilosBalance.textoEstadoGrafico}>{resumen.estado}</Text>
             </View>
           </View>
 
@@ -60,7 +67,7 @@ const PantallaBalance = () => {
                 <Icon name="arrow-bottom-left" size={16} color="#1E8E3E" />
               </View>
               <Text style={estilosBalance.etiquetaPequeña}>Lo que entró</Text>
-              <Text style={estilosBalance.montoPequeño}>S/ 4,550.00</Text>
+              <Text style={estilosBalance.montoPequeño}>S/ {formatoMonto(resumen.ingresos)}</Text>
               <Text style={estilosBalance.subtextoPequeño}>Total de ingresos del mes</Text>
             </View>
 
@@ -69,8 +76,8 @@ const PantallaBalance = () => {
                 <Icon name="arrow-top-right" size={16} color="#C8005B" />
               </View>
               <Text style={estilosBalance.etiquetaPequeña}>Lo que salió</Text>
-              <Text style={estilosBalance.montoPequeño}>S/ 1,436.40</Text>
-              <Text style={estilosBalance.subtextoPequeño}>32% de tus ingresos</Text>
+              <Text style={estilosBalance.montoPequeño}>S/ {formatoMonto(resumen.egresos)}</Text>
+              <Text style={estilosBalance.subtextoPequeño}>{resumen.porcentaje}</Text>
             </View>
           </View>
 
@@ -78,7 +85,7 @@ const PantallaBalance = () => {
             <Text style={estilosBalance.etiquetaBalanceNeto}>Tu balance neto</Text>
             <View style={estilosBalance.filaMontoNeto}>
               <Icon name="rhombus" size={16} color="#FFB81C" />
-              <Text style={estilosBalance.montoNeto}>S/ 3,113.60</Text>
+              <Text style={estilosBalance.montoNeto}>S/ {formatoMonto(resumen.neto)}</Text>
             </View>
             <Text style={estilosBalance.subtextoPequeño}>Ingresos menos egresos</Text>
           </View>
@@ -93,7 +100,7 @@ const PantallaBalance = () => {
             <Text style={estilosBalance.iconoSugerencia}>🐷</Text>
             <Text style={estilosBalance.tituloSugerencia}>Ahorro sugerido</Text>
           </View>
-          <Text style={estilosBalance.montoSugerencia}>S/ 622.72</Text>
+          <Text style={estilosBalance.montoSugerencia}>S/ {formatoMonto(resumen.ahorro)}</Text>
           <Text style={estilosBalance.textoSugerencia}>Si apartas el 20% de tu balance neto de este periodo.</Text>
         </View>
 
@@ -102,21 +109,11 @@ const PantallaBalance = () => {
             <Text style={estilosBalance.iconoSugerencia}>🐜</Text>
             <Text style={estilosBalance.tituloSugerencia}>Gastos hormiga</Text>
           </View>
-          <Text style={estilosBalance.montoSugerencia}>S/ 86.50</Text>
-          <Text style={estilosBalance.textoSugerencia}>9 compras pequeñas (menos de S/ 20) que se suman sin que lo notes.</Text>
+          <Text style={estilosBalance.montoSugerencia}>S/ {formatoMonto(resumen.gastosHormiga)}</Text>
+          <Text style={estilosBalance.textoSugerencia}>{resumen.cantidadHormiga} compras pequeñas (menos de S/ 20) que se suman sin que lo notes.</Text>
         </View>
-        {/* Tarjeta de Gastos hormiga que ya tienes */}
-        <View style={estilosBalance.tarjetaSugerencia}>
-          <View style={estilosBalance.filaSugerenciaCabecera}>
-            <Text style={estilosBalance.iconoSugerencia}>🐜</Text>
-            <Text style={estilosBalance.tituloSugerencia}>Gastos hormiga</Text>
-          </View>
-          <Text style={estilosBalance.montoSugerencia}>S/ 86.50</Text>
-          <Text style={estilosBalance.textoSugerencia}>9 compras pequeñas (menos de S/ 20) que se suman sin que lo notes.</Text>
-        </View>
-
         <Text style={estilosBalance.textoNota}>
-          Tus finanzas bajo control. Sigue así, Carlos. ✨
+          Consulta tus movimientos para conocer cómo va tu mes.
         </Text>
 
       </ScrollView>

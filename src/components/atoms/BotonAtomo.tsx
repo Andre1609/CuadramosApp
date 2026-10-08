@@ -1,3 +1,4 @@
+import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, TouchableOpacityProps } from 'react-native';
 
 interface PropiedadesBoton extends TouchableOpacityProps {
@@ -6,17 +7,17 @@ interface PropiedadesBoton extends TouchableOpacityProps {
 }
 
 const BotonAtomo = ({ texto, variante = 'amarillo', style, ...restoPropiedades }: PropiedadesBoton) => {
-  const estiloFondo = variante === 'magenta' ? estilos.botonMagenta 
-                    : variante === 'gris' ? estilos.botonGris 
+  const estiloFondo = variante === 'magenta' ? estilos.botonMagenta
+                    : variante === 'gris' ? estilos.botonGris
                     : estilos.botonAmarillo;
 
-  const estiloTexto = variante === 'magenta' ? estilos.textoMagenta 
-                    : variante === 'gris' ? estilos.textoGris 
+  const estiloTexto = variante === 'magenta' ? estilos.textoMagenta
+                    : variante === 'gris' ? estilos.textoGris
                     : estilos.textoAmarillo;
 
   return (
-    <TouchableOpacity 
-      style={[estilos.baseBoton, estiloFondo, style]} 
+    <TouchableOpacity
+      style={[estilos.baseBoton, estiloFondo, style]}
       {...restoPropiedades}
     >
       <Text style={[estilos.baseTextoBoton, estiloTexto]}>{texto}</Text>
@@ -42,7 +43,7 @@ const estilos = StyleSheet.create({
     backgroundColor: '#FFB81C',
   },
   textoAmarillo: {
-    color: '#C8005B', 
+    color: '#C8005B',
   },
   botonMagenta: {
     backgroundColor: '#C8005B',

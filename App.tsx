@@ -12,6 +12,8 @@ import PantallaBalance from './src/screens/PantallaBalance.tsx';
 
 import { estilosNavegacion } from './src/styles/estilosNavegacion';
 
+import { FinanzasProvider } from './src/context/FinanzasContext';
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -55,6 +57,7 @@ const MisTabs = () => {
 
 const App = () => {
   return (
+    <FinanzasProvider>
     <NavigationContainer>
       <Stack.Navigator 
         initialRouteName="Ingreso"
@@ -64,6 +67,7 @@ const App = () => {
         <Stack.Screen name="Principal" component={MisTabs} />
       </Stack.Navigator>
     </NavigationContainer>
+    </FinanzasProvider>
   );
 };
 

@@ -3,21 +3,23 @@ import { View, Text, SafeAreaView, TouchableOpacity, TextInput, ScrollView, Stat
 import { estilosHistorial } from '../styles/estilosHistorial';
 import { estilosRegistrar } from '../styles/estilosRegistrar';
 
-const todosLosMovimientos = [
-  { id: 1, titulo: 'Mercado de la semana', categoria: 'Alimentación', fechaDia: '3 de oct', fechaAnio: '2026', monto: '- S/ 185.00', tipo: 'Egreso', icono: 'shopping-outline', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', colorMonto: '#C8005B' },
-  { id: 2, titulo: 'Proyecto freelance', categoria: 'Trabajo', fechaDia: '3 de oct', fechaAnio: '2026', monto: '+ S/ 350.00', tipo: 'Ingreso', icono: 'arrow-bottom-left', colorFondo: '#E6F4EA', colorIcono: '#1E8E3E', colorMonto: '#1E8E3E' },
-  { id: 3, titulo: 'Un cafecito y algo más', categoria: 'Comida y bebida', fechaDia: '2 de oct', fechaAnio: '2026', monto: '- S/ 18.50', tipo: 'Egreso', icono: 'coffee-outline', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', colorMonto: '#C8005B' },
-  { id: 4, titulo: 'Arriendo de octubre', categoria: 'Hogar', fechaDia: '2 de oct', fechaAnio: '2026', monto: '- S/ 1,200.00', tipo: 'Egreso', icono: 'home-outline', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', colorMonto: '#C8005B' },
-  { id: 5, titulo: 'Pago de nómina', categoria: 'Salario', fechaDia: '1 de oct', fechaAnio: '2026', monto: '+ S/ 4,200.00', tipo: 'Ingreso', icono: 'arrow-bottom-left', colorFondo: '#E6F4EA', colorIcono: '#1E8E3E', colorMonto: '#1E8E3E' },
-  { id: 6, titulo: 'Suscripción de música', categoria: 'Entretenimiento', fechaDia: '1 de oct', fechaAnio: '2026', monto: '- S/ 32.90', tipo: 'Egreso', icono: 'music-note-outline', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', colorMonto: '#C8005B' },
-];
+import { useFinanzas } from '../context/FinanzasContext';
+import { movimientoVisual } from '../utils/finanzas';
+import EditarOperacion from '../components/EditarOperacion';
+
 
 const PantallaHistorial = () => {
+  const { operaciones, cargando, error, recargar } = useFinanzas();
+  const [operacionId, setOperacionId] = useState<string | null>(null);
+  const operacionSeleccionada = operaciones.find(op => op.id === operacionId);
+  const todosLosMovimientos = operaciones.map(movimientoVisual);
+  const [busqueda, setBusqueda] = useState('');
   const [filtroTab, setFiltroTab] = useState('todos');
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
 
   // Lógica de filtrado visual
   const movimientosFiltrados = todosLosMovimientos.filter(mov => {
+    if (!`${mov.titulo} ${mov.categoria}`.toLocaleLowerCase().includes(busqueda.trim().toLocaleLowerCase())) { return false; }
     if (filtroTab === 'todos') return true;
     if (filtroTab === 'ingresos') return mov.tipo === 'Ingreso';
     if (filtroTab === 'egresos') return mov.tipo === 'Egreso';
@@ -26,7 +28,7 @@ const PantallaHistorial = () => {
 
   return (
     <SafeAreaView style={estilosHistorial.areaSegura}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
+      <StatusBar barStyle="dark-content" />
       
       <ScrollView contentContainerStyle={estilosHistorial.contenedorScroll}>
         
@@ -88,11 +90,13 @@ const PantallaHistorial = () => {
               <TextInput 
                 style={estilosHistorial.inputBuscador}
                 placeholder="Buscar movimiento"
+                value={busqueda}
+                onChangeText={setBusqueda}
                 placeholderTextColor="#A0AEC0"
               />
             </View>
             <TouchableOpacity style={estilosHistorial.cajaMes}>
-              <Text style={estilosHistorial.textoMes}>Octubre 2026</Text>
+              <Text style={estilosHistorial.textoMes}>Todos los meses</Text>
               <Icon name="chevron-down" size={20} color="#A0AEC0" />
             </TouchableOpacity>
           </View>
@@ -103,8 +107,13 @@ const PantallaHistorial = () => {
             <Text style={[estilosHistorial.textoEncabezado, { flex: 1.2, textAlign: 'right' }]}>Monto</Text>
           </View>
 
+          {cargando && <Text>Cargando operaciones...</Text>}
+          {error && <TouchableOpacity onPress={() => void recargar()}><Text>{error} Toca para reintentar.</Text></TouchableOpacity>}
+          {!cargando && !error && !movimientosFiltrados.length && <Text>No hay movimientos para mostrar.</Text>}
           {movimientosFiltrados.map((mov) => (
-            <View key={mov.id} style={estilosHistorial.filaMovimiento}>
+            <TouchableOpacity key={mov.id} style={estilosHistorial.filaMovimiento}
+              accessibilityRole="button" accessibilityLabel={`Editar ${mov.titulo}`}
+              disabled={cargando || !!error} onPress={() => setOperacionId(mov.id)}>
               <View style={estilosHistorial.ladoIzquierdo}>
                 <View style={[estilosHistorial.iconoContenedor, { backgroundColor: mov.colorFondo }]}>
                   <Icon name={mov.icono} size={20} color={mov.colorIcono} />
@@ -124,7 +133,7 @@ const PantallaHistorial = () => {
                 <Text style={[estilosHistorial.montoTexto, { color: mov.colorMonto }]}>{mov.monto}</Text>
                 <Text style={estilosHistorial.tipoTexto}>{mov.tipo}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
 
           <View style={estilosHistorial.pieTarjeta}>
@@ -187,7 +196,8 @@ const PantallaHistorial = () => {
 
           </TouchableOpacity>
         </TouchableOpacity>
-      </Modal>    
+      </Modal>
+      {operacionSeleccionada && <EditarOperacion key={operacionSeleccionada.id} operacion={operacionSeleccionada} cerrar={() => setOperacionId(null)} />}
     </SafeAreaView>
   );
 };
