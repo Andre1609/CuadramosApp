@@ -1,4 +1,20 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const CLAVE_META = '@cuadramos/meta/local/v1';
+export async function cargarMeta(): Promise<number | null> {
+  const valor = await AsyncStorage.getItem(CLAVE_META);
+  if (valor === null) {
+    return null;
+  }
+  const monto = Number(valor);
+  if (!Number.isSafeInteger(monto) || monto < 0) {
+    throw new Error('Meta guardada inválida.');
+  }
+  return monto;
+}
+export async function guardarMetaLocal(monto: number) {
+  await AsyncStorage.setItem(CLAVE_META, String(monto));
+}
 import { Operacion, cuentas, categoriasPorTipo } from '../types/finanzas';
 
 // Espacio local provisional. Al integrar el login, usar un espacio por usuario.

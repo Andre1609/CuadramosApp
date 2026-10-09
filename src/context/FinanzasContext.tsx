@@ -1,8 +1,11 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { NuevaOperacion, Operacion, cuentas, categoriasPorTipo } from '../types/finanzas';
 import { cargarOperaciones, guardarOperaciones } from '../services/almacenamiento';
+import { cargarMeta, guardarMetaLocal } from '../services/almacenamiento';
 
 interface Finanzas {
+  metaCentimos: number;
+  guardarMeta: (monto: number) => Promise<void>;
   operaciones: Operacion[];
   cargando: boolean;
   error: string | null;
@@ -24,6 +27,7 @@ const ordenar = (lista: Operacion[]) => [...lista].sort((a, b) => Date.parse(b.f
 const Contexto = createContext<Finanzas | null>(null);
 
 export function FinanzasProvider({ children }: { children: React.ReactNode }) {
+  const [metaCentimos, setMetaCentimos] = useState(0);
   const [operaciones, setOperaciones] = useState<Operacion[]>([]);
   const actuales = useRef<Operacion[]>([]);
   const ocupado = useRef(false);
@@ -33,8 +37,10 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
   async function recargar() {
     setCargando(true);
     try {
-      actuales.current = ordenar(await cargarOperaciones());
-      setOperaciones(actuales.current);
+      const [registros, meta] = await Promise.all([cargarOperaciones(), cargarMeta()]);
+      actuales.current = ordenar(registros);
+      setMetaCentimos(meta ?? Math.max(0, registros.filter(op => op.cuentaId === 'metas').reduce((total, op) => total + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos), 0)));
+      setOperaciones(actuales.current.filter(op => op.cuentaId !== 'metas'));
       setError(null);
     } catch {
       setError('No se pudieron cargar tus operaciones. Reintenta para continuar.');
@@ -43,6 +49,7 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { void recargar(); }, []);
 
   async function registrar(datos: NuevaOperacion) {
+    if (datos.cuentaId === 'metas') { throw new Error('Las metas son objetivos, no cuentas de dinero.'); }
     validarFecha(datos.fecha);
     if (cargando || error) { throw new Error('Espera a que se carguen tus operaciones.'); }
     if (ocupado.current) { throw new Error('Se está guardando una operación.'); }
@@ -57,10 +64,11 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
       const siguientes = ordenar([nueva, ...actuales.current]);
       await guardarOperaciones(siguientes);
       actuales.current = ordenar(siguientes);
-      setOperaciones(actuales.current);
+      setOperaciones(actuales.current.filter(op => op.cuentaId !== 'metas'));
     } finally { ocupado.current = false; }
   }
   async function modificar(id: string, datos?: NuevaOperacion) {
+    if (datos?.cuentaId === 'metas') { throw new Error('Las metas son objetivos, no cuentas de dinero.'); }
     validarFecha(datos?.fecha);
     if (cargando || error) { throw new Error('Espera a que se carguen tus operaciones.'); }
     if (ocupado.current) { throw new Error('Hay otra operación en proceso.'); }
@@ -78,12 +86,19 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
         : actuales.current.filter(op => op.id !== id);
       await guardarOperaciones(siguientes);
       actuales.current = ordenar(siguientes);
-      setOperaciones(actuales.current);
+      setOperaciones(actuales.current.filter(op => op.cuentaId !== 'metas'));
     } finally { ocupado.current = false; }
   }
   const editar = (id: string, datos: NuevaOperacion) => modificar(id, datos);
   const eliminar = (id: string) => modificar(id);
-  return <Contexto.Provider value={{ operaciones, cargando, error, recargar, registrar, editar, eliminar }}>{children}</Contexto.Provider>;
+  async function guardarMeta(monto: number) {
+    if (cargando || error || ocupado.current) { throw new Error('Espera a que termine la carga o el guardado.'); }
+    if (!Number.isSafeInteger(monto) || monto <= 0 || monto > 99999999999) { throw new Error('Ingresa un objetivo válido.'); }
+    ocupado.current = true;
+    try { await guardarMetaLocal(monto); setMetaCentimos(monto); }
+    finally { ocupado.current = false; }
+  }
+  return <Contexto.Provider value={{ operaciones, metaCentimos, guardarMeta, cargando, error, recargar, registrar, editar, eliminar }}>{children}</Contexto.Provider>;
 }
 
 export function useFinanzas() {

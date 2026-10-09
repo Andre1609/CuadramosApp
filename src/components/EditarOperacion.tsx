@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Modal, Platform, SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { Operacion, TipoOperacion, categoriasPorTipo, cuentas } from '../types/finanzas';
+import { Operacion, TipoOperacion, categoriasPorTipo, cuentasFinancieras as cuentas } from '../types/finanzas';
 import { useFinanzas } from '../context/FinanzasContext';
 import { montoACentimos } from '../utils/finanzas';
 import { estilosEditarOperacion as estilos } from '../styles/estilosEditarOperacion';

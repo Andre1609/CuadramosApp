@@ -50,3 +50,7 @@ export const categoriasPorTipo = {
     'Otros',
   ],
 };
+
+export const cuentasFinancieras = cuentas.filter(
+  cuenta => cuenta.id !== 'metas',
+);

@@ -8,21 +8,24 @@ import { estilos } from '../styles/estilosPrincipal';
 import { useFinanzas } from '../context/FinanzasContext';
 import { formatoMonto, movimientoVisual } from '../utils/finanzas';
 import { cuentas } from '../types/finanzas';
+import MetaAhorro from '../components/MetaAhorro';
 
 const PantallaPrincipal = ({ navigation }: any) => {
-  const { operaciones, cargando, error, recargar } = useFinanzas();
+  const { operaciones, metaCentimos, cargando, error, recargar } = useFinanzas();
+  const [metaVisible, setMetaVisible] = useState(false);
   const misCuentasData = cuentas.map(cuenta => {
     const movimientos = operaciones.filter(op => op.cuentaId === cuenta.id);
     const centimos = movimientos.reduce((total, op) => total + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos), 0);
-    return { ...cuenta, tipo: 'Cuenta local', saldo: formatoMonto(centimos), centimos, tieneMovimientos: movimientos.length > 0 };
+    return { ...cuenta, tipo: cuenta.id === 'metas' ? 'Objetivo de ahorro · no es saldo' : 'Cuenta local', saldo: formatoMonto(cuenta.id === 'metas' ? metaCentimos : centimos), centimos, tieneMovimientos: movimientos.length > 0 };
   });
-  const total = misCuentasData.reduce((suma, cuenta) => suma + cuenta.centimos, 0);
+  const total = misCuentasData.filter(cuenta => cuenta.id !== 'metas').reduce((suma, cuenta) => suma + cuenta.centimos, 0);
   const [saldoOculto, setSaldoOculto] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [cuentaActiva, setCuentaActiva] = useState<any>(null);
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
 
   const abrirDetalleCuenta = (cuenta: any) => {
+    if (cuenta.id === 'metas') { setMetaVisible(true); return; }
     setCuentaActiva(cuenta);
     setModalVisible(true);
   };
@@ -112,7 +115,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
 
         <View style={estilos.seccionCuentas}>
           <View style={estilos.encabezadoSeccion}>
-            <Text style={estilos.tituloSeccion}>Mis cuentas</Text>
+            <Text style={estilos.tituloSeccion}>Mis cuentas y metas</Text>
             <View style={estilos.badgeCuentas}>
               <Text style={estilos.textoBadge}>3</Text>
             </View>
@@ -268,6 +271,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+      {metaVisible && <MetaAhorro cerrar={() => setMetaVisible(false)} />}
     </SafeAreaView>
   );
 };
