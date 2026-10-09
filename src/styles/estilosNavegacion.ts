@@ -16,5 +16,5 @@ export const estilosNavegacion = StyleSheet.create({
   },
   icono: {
     fontSize: 20,
-  }
+  },
 });

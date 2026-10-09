@@ -5,20 +5,18 @@ import { BlurView } from '@react-native-community/blur';
 import { estilos } from '../styles/estilosPrincipal';
 
 
-const misCuentasData = [
-  { id: 1, nombre: 'Mi cuenta principal', tipo: 'Cuenta de ahorros', saldo: '3,850.00', colorFondo: '#FFF0F5', colorIcono: '#C8005B', icono: 'wallet-outline', tieneMovimientos: true },
-  { id: 2, nombre: 'Mis metas', tipo: 'Cuenta de ahorros', saldo: '1,200.00', colorFondo: '#FFF9E6', colorIcono: '#A67C00', icono: 'target', tieneMovimientos: false },
-  { id: 3, nombre: 'Del día a día', tipo: 'Cuenta de ahorros', saldo: '650.00', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', icono: 'credit-card-outline', tieneMovimientos: true },
-];
-
-const ultimosMovimientosData = [
-  { id: 1, titulo: 'Mercado de la semana', categoria: 'Alimentación', fechaDia: '6 de oct', fechaAnio: '2026', monto: '- S/ 185.00', tipo: 'Egreso', icono: 'shopping-outline', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', colorMonto: '#C8005B' },
-  { id: 2, titulo: 'Proyecto freelance', categoria: 'Trabajo', fechaDia: '6 de oct', fechaAnio: '2026', monto: '+ S/ 350.00', tipo: 'Ingreso', icono: 'arrow-bottom-left', colorFondo: '#E6F4EA', colorIcono: '#1E8E3E', colorMonto: '#1E8E3E' },
-  { id: 3, titulo: 'Un cafecito y algo más', categoria: 'Comida y bebida', fechaDia: '6 de oct', fechaAnio: '2026', monto: '- S/ 18.50', tipo: 'Egreso', icono: 'coffee-outline', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', colorMonto: '#C8005B' },
-  { id: 4, titulo: 'Arriendo de octubre', categoria: 'Hogar', fechaDia: '5 de oct', fechaAnio: '2026', monto: '- S/ 1,200.00', tipo: 'Egreso', icono: 'home-outline', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', colorMonto: '#C8005B' }
-];
+import { useFinanzas } from '../context/FinanzasContext';
+import { formatoMonto, movimientoVisual } from '../utils/finanzas';
+import { cuentas } from '../types/finanzas';
 
 const PantallaPrincipal = ({ navigation }: any) => {
+  const { operaciones, cargando, error, recargar } = useFinanzas();
+  const misCuentasData = cuentas.map(cuenta => {
+    const movimientos = operaciones.filter(op => op.cuentaId === cuenta.id);
+    const centimos = movimientos.reduce((total, op) => total + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos), 0);
+    return { ...cuenta, tipo: 'Cuenta local', saldo: formatoMonto(centimos), centimos, tieneMovimientos: movimientos.length > 0 };
+  });
+  const total = misCuentasData.reduce((suma, cuenta) => suma + cuenta.centimos, 0);
   const [saldoOculto, setSaldoOculto] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [cuentaActiva, setCuentaActiva] = useState<any>(null);
@@ -30,16 +28,17 @@ const PantallaPrincipal = ({ navigation }: any) => {
   };
 
   const irARegistrar = () => {
+    if (!cuentaActiva) { return; }
     setModalVisible(false);
-    navigation.navigate('Registrar');
+    navigation.navigate('Registrar', { cuentaId: cuentaActiva.id });
   };
 
   return (
     <SafeAreaView style={estilos.areaSegura}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
-      
+      <StatusBar barStyle="dark-content" />
+
       <ScrollView contentContainerStyle={estilos.contenedorScroll}>
-        
+
         <View style={estilos.encabezadoSuperior}>
           <View style={estilos.migasPan}>
             <Text style={estilos.textoMigaInactivo}>Mi billetera  {'>'}  </Text>
@@ -49,8 +48,8 @@ const PantallaPrincipal = ({ navigation }: any) => {
             <TouchableOpacity>
               <Icon name="bell-outline" size={24} color="#C8005B" />
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={estilos.botonPerfilCabecera}
               onPress={() => setModalUsuarioVisible(true)}
             >
@@ -66,7 +65,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
           </View>
           <Text style={estilos.subtitulo}>Qué bueno verte. Vamos a poner tus finanzas en orden.</Text>
         </View>
-        
+
         <View style={estilos.tarjetaMagenta}>
           <View style={estilos.filaSuperiorTarjeta}>
             <View style={estilos.contenedorEtiqueta}>
@@ -80,8 +79,13 @@ const PantallaPrincipal = ({ navigation }: any) => {
 
           <View style={estilos.contenedorMonto}>
             <Text style={estilos.simboloMoneda}>S/</Text>
-            <Text style={estilos.montoTotal}>
-              {saldoOculto ? '• • • • • • •' : '5,700.00'}
+            <Text
+              style={[estilos.montoTotal, saldoOculto && estilos.montoOculto]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              accessibilityLabel={saldoOculto ? 'Saldo oculto' : undefined}
+            >
+              {saldoOculto ? '••••••' : formatoMonto(total)}
             </Text>
             <Text style={estilos.textoMoneda}>PEN</Text>
           </View>
@@ -92,8 +96,8 @@ const PantallaPrincipal = ({ navigation }: any) => {
             <TouchableOpacity style={estilos.botonSecundario}>
               <Text style={estilos.textoBotonSecundario}>📈 Vas por buen camino</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={estilos.botonPrimario}
               onPress={() => navigation.navigate('Registrar')}
             >
@@ -102,19 +106,9 @@ const PantallaPrincipal = ({ navigation }: any) => {
           </View>
         </View>
 
-        <View style={estilos.tarjetaDorada}>
-          <Icon name="creation" size={90} color="#F6D365" style={estilos.iconoEstrellaDecorativa} />
-          <View style={estilos.filaEtiquetaDorada}>
-            <Icon name="creation" size={16} color="#A67C00" />
-            <Text style={estilos.textoEtiquetaDorada}>UN PASO A LA VEZ</Text>
-          </View>
-          <Text style={estilos.tituloDorado}>Tu tranquilidad también cuenta.</Text>
-          <Text style={estilos.subtituloDorado}>Conocer tu dinero es el primer paso para hacer realidad tus planes.</Text>
-          <TouchableOpacity style={estilos.botonDescubre} onPress={() => navigation.navigate('Balance')}>
-            <Text style={estilos.textoBotonDescubre}>Descubre cómo vas</Text>
-            <Icon name="arrow-right" size={18} color="#A67C00" />
-          </TouchableOpacity>
-        </View>
+        {cargando && <Text>Cargando cuentas...</Text>}
+        {error && <TouchableOpacity onPress={() => void recargar()}><Text>{error} Toca para reintentar.</Text></TouchableOpacity>}
+        {!cargando && !error && !operaciones.length && <Text>Registra tu primera operación para comenzar.</Text>}
 
         <View style={estilos.seccionCuentas}>
           <View style={estilos.encabezadoSeccion}>
@@ -126,8 +120,8 @@ const PantallaPrincipal = ({ navigation }: any) => {
           <Text style={estilos.subtituloSeccion}>Un lugar para cada parte de tu vida.</Text>
 
           {misCuentasData.map((cuenta) => (
-            <TouchableOpacity 
-              key={cuenta.id} 
+            <TouchableOpacity
+              key={cuenta.id}
               style={estilos.tarjetaCuenta}
               onPress={() => abrirDetalleCuenta(cuenta)}
             >
@@ -151,118 +145,6 @@ const PantallaPrincipal = ({ navigation }: any) => {
           ))}
         </View>
 
-        <View style={estilos.tarjetaMovimientos}>
-          
-          <View style={estilos.cabeceraMovimientosSuperior}>
-            <Text style={estilos.tituloMovimientos}>Últimos movimientos</Text>
-            <TouchableOpacity 
-              style={estilos.botonVerTodos}
-              onPress={() => navigation.navigate('Historial')}
-            >
-              <Text style={estilos.textoVerTodos}>Ver todos</Text>
-              <Icon name="arrow-right" size={16} color="#C8005B" />
-            </TouchableOpacity>
-          </View>
-          <Text style={estilos.subtituloMovimientos}>Lo que entra y lo que sale, sin enredos.</Text>
-
-          <View style={estilos.encabezadoTablaMov}>
-            <Text style={[estilos.textoEncabezadoMov, { flex: 2 }]}>Movimiento</Text>
-            <Text style={[estilos.textoEncabezadoMov, { flex: 1, textAlign: 'center' }]}>Fecha</Text>
-            <Text style={[estilos.textoEncabezadoMov, { flex: 1.2, textAlign: 'right' }]}>Monto</Text>
-          </View>
-
-          {ultimosMovimientosData.map((mov) => (
-            <View key={mov.id} style={estilos.filaMovimiento}>
-              <View style={estilos.ladoIzquierdoMov}>
-                <View style={[estilos.iconoMovContenedor, { backgroundColor: mov.colorFondo }]}>
-                  <Icon name={mov.icono} size={20} color={mov.colorIcono} />
-                </View>
-                <View style={estilos.textosIzquierdaMov}>
-                  <Text style={estilos.tituloMov} numberOfLines={1}>{mov.titulo}</Text>
-                  <Text style={estilos.categoriaMov}>{mov.categoria}</Text>
-                </View>
-              </View>
-              
-              <View style={estilos.centroMov}>
-                <Text style={estilos.fechaMov}>{mov.fechaDia}</Text>
-                <Text style={estilos.fechaMov}>{mov.fechaAnio}</Text>
-              </View>
-
-              <View style={estilos.ladoDerechoMov}>
-                <Text style={[estilos.montoMov, { color: mov.colorMonto }]}>{mov.monto}</Text>
-                <Text style={estilos.tipoMov}>{mov.tipo}</Text>
-              </View>
-            </View>
-          ))}
-
-          <View style={estilos.pieMovimientos}>
-            <View style={estilos.pieIzquierdaMov}>
-              <View style={estilos.puntoVerde} />
-              <Text style={estilos.textoPieVerde}>Tus movimientos están al día</Text>
-            </View>
-            <Text style={estilos.textoPieGris}>Así de simple.</Text>
-          </View>
-
-        </View>
-          <View style={estilos.tarjetaBalance}>
-          
-          <View style={estilos.cabeceraBalance}>
-            <Text style={estilos.tituloBalance}>Tu balance del mes</Text>
-            <View style={estilos.selectorMes}>
-              <Text style={estilos.textoMes}>Octubre</Text>
-            </View>
-          </View>
-
-          <View style={estilos.contenedorGrafico}>
-            <View style={estilos.anilloGrafico}>
-              <Text style={estilos.emojiGrafico}>🤩</Text>
-              <Text style={estilos.textoEstadoGrafico}>Saludable</Text>
-            </View>
-          </View>
-
-          <View style={estilos.contenedorLeyendas}>
-            <View style={estilos.filaLeyenda}>
-              <View style={estilos.itemLeyenda}>
-                <View style={[estilos.puntoLeyenda, { backgroundColor: '#C8005B' }]} />
-                <Text style={estilos.textoLeyenda}>Ingresos</Text>
-              </View>
-              <Text style={estilos.montoLeyenda}>S/ 4,550.00</Text>
-            </View>
-
-            <View style={estilos.filaLeyenda}>
-              <View style={estilos.itemLeyenda}>
-                <View style={[estilos.puntoLeyenda, { backgroundColor: '#FFB81C' }]} />
-                <Text style={estilos.textoLeyenda}>Egresos</Text>
-              </View>
-              <Text style={estilos.montoLeyenda}>S/ 1,436.40</Text>
-            </View>
-          </View>
-
-          <View style={estilos.alertaVerde}>
-            <View style={estilos.puntoVerde} />
-            <Text style={estilos.textoAlertaVerde}>¡Vas muy bien!</Text>
-          </View>
-
-          <TouchableOpacity 
-            style={estilos.botonSaludFinanciera}
-            onPress={() => navigation.navigate('Balance')}
-          >
-            <Text style={estilos.textoBotonSalud}>Ver mi salud financiera</Text>
-            <Icon name="arrow-right" size={16} color="#C8005B" />
-          </TouchableOpacity>
-
-        </View>
-
-        <View style={estilos.tarjetaFrase}>
-          <Icon name="heart-outline" size={20} color="#9F7AEA" />
-          <Text style={estilos.textoFrase}>No se trata de tener más. Se trata de vivir mejor con lo que tienes.</Text>
-          <Icon name="creation" size={20} color="#9F7AEA" />
-        </View>
-
-        <View style={estilos.piePantalla}>
-          <View style={[estilos.puntoLeyenda, { backgroundColor: '#A0AEC0', width: 4, height: 4, marginRight: 0 }]} />
-          <Text style={estilos.textoPieDemo}>Cada sol cuenta. Vas por excelente camino, Carlos. 🚀</Text>
-        </View>
       </ScrollView>
 
       <TouchableOpacity style={estilos.botonChatbotFlotante}>
@@ -275,15 +157,15 @@ const PantallaPrincipal = ({ navigation }: any) => {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <BlurView 
+        <BlurView
           style={estilos.modalFondo}
-          blurType="dark" 
-          blurAmount={3}   
+          blurType="dark"
+          blurAmount={3}
           reducedTransparencyFallbackColor="white"
         >
           {cuentaActiva && (
             <View style={estilos.modalContenedor}>
-              
+
               <View style={estilos.modalCabecera}>
                 <Text style={estilos.textoModalEtiqueta}>DETALLE DE TU CUENTA</Text>
                 <TouchableOpacity onPress={() => setModalVisible(false)} style={estilos.botonCerrarModal}>
@@ -292,24 +174,39 @@ const PantallaPrincipal = ({ navigation }: any) => {
               </View>
 
               <Text style={estilos.modalTituloCuenta}>{cuentaActiva.nombre}</Text>
-              <Text style={estilos.modalSaldoGrande}>S/ {cuentaActiva.saldo}</Text>
+              <Text style={estilos.modalSaldoGrande}>S/ {misCuentasData.find(cuenta => cuenta.id === cuentaActiva.id)?.saldo}</Text>
 
               <View style={estilos.modalEncabezadoTabla}>
-                <Text style={[estilos.modalTextoTabla, { flex: 2 }]}>Movimiento</Text>
-                <Text style={[estilos.modalTextoTabla, { flex: 1, textAlign: 'center' }]}>Fecha</Text>
-                <Text style={[estilos.modalTextoTabla, { flex: 1, textAlign: 'right' }]}>Monto</Text>
+                <Text style={[estilos.modalTextoTabla, estilos.columnaMovimientoCuenta]}>Movimiento</Text>
+                <Text style={[estilos.modalTextoTabla, estilos.columnaFechaCuenta, estilos.fechaMovimientoCuenta]}>Fecha</Text>
+                <Text style={[estilos.modalTextoTabla, estilos.columnaMontoCuenta, estilos.montoMovimientoCuenta]}>Monto</Text>
               </View>
 
-              {!cuentaActiva.tieneMovimientos ? (
+              {!operaciones.some(op => op.cuentaId === cuentaActiva.id) ? (
                 <View style={estilos.estadoVacioContenedor}>
                   <Icon name="history" size={40} color="#CBD5E0" />
                   <Text style={estilos.textoVacioTitulo}>Por aquí aún no hay movimientos</Text>
                   <Text style={estilos.textoVacioSubtitulo}>Registra tu primera operación y empieza a cuadrar.</Text>
                 </View>
               ) : (
-                <View style={estilos.estadoVacioContenedor}>
-                   <Text style={estilos.textoVacioSubtitulo}>Lista de movimientos lista para conectar...</Text>
-                </View>
+                <ScrollView style={estilos.listaMovimientosCuenta}>
+                  {operaciones.filter(op => op.cuentaId === cuentaActiva.id).map(movimientoVisual).map(mov => (
+                    <View key={mov.id} style={estilos.filaMovimientoCuenta}>
+                      <View style={estilos.columnaMovimientoCuenta}>
+                        <Text style={estilos.tituloMovimientoCuenta}>{mov.titulo}</Text>
+                        <Text style={estilos.detalleMovimientoCuenta}>{mov.categoria}</Text>
+                      </View>
+                      <View style={estilos.columnaFechaCuenta}>
+                        <Text style={[estilos.detalleMovimientoCuenta, estilos.fechaMovimientoCuenta]}>{mov.fechaDia}</Text>
+                        <Text style={[estilos.detalleMovimientoCuenta, estilos.fechaMovimientoCuenta]}>{mov.fechaAnio}</Text>
+                      </View>
+                      <View style={estilos.columnaMontoCuenta}>
+                        <Text style={[estilos.montoMovimientoCuenta, { color: mov.colorMonto }]} numberOfLines={1} adjustsFontSizeToFit>{mov.monto}</Text>
+                        <Text style={[estilos.detalleMovimientoCuenta, estilos.montoMovimientoCuenta]}>{mov.tipo}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </ScrollView>
               )}
 
               <View style={estilos.contenedorBotonFijo}>
@@ -330,7 +227,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
       >
         <TouchableOpacity style={estilos.modalFondoPerfil} activeOpacity={1} onPressOut={() => setModalUsuarioVisible(false)}>
           <TouchableOpacity activeOpacity={1} style={estilos.modalContenedorUsuario}>
-            
+
             <View style={estilos.lineaArrastre} />
 
             <View style={estilos.avatarGrande}>
@@ -338,7 +235,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
             </View>
 
             <Text style={estilos.nombreUsuarioModal}>Carlos Flores Reyes</Text>
-            
+
             <View style={estilos.badgeVerificado}>
               <Icon name="check" size={14} color="#1E8E3E" />
               <Text style={estilos.textoBadgeVerificado}>Cuenta verificada</Text>

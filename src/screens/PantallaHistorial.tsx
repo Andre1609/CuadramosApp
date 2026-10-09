@@ -1,23 +1,52 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { Alert } from 'react-native';
+import { exportarReporte } from '../services/exportarReporte';
+import { etiquetaMes } from '../utils/fechas';
 import { View, Text, SafeAreaView, TouchableOpacity, TextInput, ScrollView, StatusBar, Modal } from 'react-native';import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { estilosHistorial } from '../styles/estilosHistorial';
 import { estilosRegistrar } from '../styles/estilosRegistrar';
 
-const todosLosMovimientos = [
-  { id: 1, titulo: 'Mercado de la semana', categoria: 'Alimentación', fechaDia: '3 de oct', fechaAnio: '2026', monto: '- S/ 185.00', tipo: 'Egreso', icono: 'shopping-outline', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', colorMonto: '#C8005B' },
-  { id: 2, titulo: 'Proyecto freelance', categoria: 'Trabajo', fechaDia: '3 de oct', fechaAnio: '2026', monto: '+ S/ 350.00', tipo: 'Ingreso', icono: 'arrow-bottom-left', colorFondo: '#E6F4EA', colorIcono: '#1E8E3E', colorMonto: '#1E8E3E' },
-  { id: 3, titulo: 'Un cafecito y algo más', categoria: 'Comida y bebida', fechaDia: '2 de oct', fechaAnio: '2026', monto: '- S/ 18.50', tipo: 'Egreso', icono: 'coffee-outline', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', colorMonto: '#C8005B' },
-  { id: 4, titulo: 'Arriendo de octubre', categoria: 'Hogar', fechaDia: '2 de oct', fechaAnio: '2026', monto: '- S/ 1,200.00', tipo: 'Egreso', icono: 'home-outline', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', colorMonto: '#C8005B' },
-  { id: 5, titulo: 'Pago de nómina', categoria: 'Salario', fechaDia: '1 de oct', fechaAnio: '2026', monto: '+ S/ 4,200.00', tipo: 'Ingreso', icono: 'arrow-bottom-left', colorFondo: '#E6F4EA', colorIcono: '#1E8E3E', colorMonto: '#1E8E3E' },
-  { id: 6, titulo: 'Suscripción de música', categoria: 'Entretenimiento', fechaDia: '1 de oct', fechaAnio: '2026', monto: '- S/ 32.90', tipo: 'Egreso', icono: 'music-note-outline', colorFondo: '#F0F0FF', colorIcono: '#5C5C99', colorMonto: '#C8005B' },
-];
+import { useFinanzas } from '../context/FinanzasContext';
+import { movimientoVisual } from '../utils/finanzas';
+import EditarOperacion from '../components/EditarOperacion';
+
+
+import SelectorMes from '../components/SelectorMes';
+import { claveMes } from '../utils/fechas';
 
 const PantallaHistorial = () => {
+  const { operaciones, cargando, error, recargar } = useFinanzas();
+  const [operacionId, setOperacionId] = useState<string | null>(null);
+  const operacionSeleccionada = operaciones.find(op => op.id === operacionId);
+  const [mes, setMes] = useState('');
+  const [exportando, setExportando] = useState(false);
+  const exportacionOcupada = useRef(false);
+  const confirmarExportacion = () => {
+    if (exportacionOcupada.current || cargando || error) { return; }
+    const periodo = mes ? etiquetaMes(mes) : 'Todos los meses';
+    const copia = [...operaciones];
+    const mesReporte = mes;
+    Alert.alert('Exportar reporte PDF',
+      `Periodo: ${periodo}. Se incluirán todos los ingresos y egresos de este periodo, sin aplicar la búsqueda ni el filtro por tipo.`, [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Generar PDF', onPress: async () => {
+          if (exportacionOcupada.current) { return; }
+          exportacionOcupada.current = true;
+          setExportando(true);
+          try { await exportarReporte(copia, mesReporte); }
+          catch { Alert.alert('No se pudo exportar', 'Inténtalo nuevamente. Si acabas de actualizar la app, recompílala para habilitar la función de compartir PDF.'); }
+          finally { exportacionOcupada.current = false; setExportando(false); }
+        } },
+      ]);
+  };
+  const todosLosMovimientos = operaciones.filter(op => !mes || claveMes(new Date(op.fecha)) === mes).map(movimientoVisual);
+  const [busqueda, setBusqueda] = useState('');
   const [filtroTab, setFiltroTab] = useState('todos');
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
 
   // Lógica de filtrado visual
   const movimientosFiltrados = todosLosMovimientos.filter(mov => {
+    if (!`${mov.titulo} ${mov.categoria}`.toLocaleLowerCase().includes(busqueda.trim().toLocaleLowerCase())) { return false; }
     if (filtroTab === 'todos') return true;
     if (filtroTab === 'ingresos') return mov.tipo === 'Ingreso';
     if (filtroTab === 'egresos') return mov.tipo === 'Egreso';
@@ -26,10 +55,10 @@ const PantallaHistorial = () => {
 
   return (
     <SafeAreaView style={estilosHistorial.areaSegura}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
-      
+      <StatusBar barStyle="dark-content" />
+
       <ScrollView contentContainerStyle={estilosHistorial.contenedorScroll}>
-        
+
         <View style={estilosHistorial.encabezadoSuperior}>
           <View style={estilosHistorial.migasPan}>
             <Text style={estilosHistorial.textoMigaInactivo}>Mi billetera  {'>'}  </Text>
@@ -39,8 +68,8 @@ const PantallaHistorial = () => {
             <TouchableOpacity>
               <Icon name="bell-outline" size={24} color="#C8005B" />
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={estilosRegistrar.botonPerfilCabecera}
               onPress={() => setModalUsuarioVisible(true)}
             >
@@ -54,27 +83,27 @@ const PantallaHistorial = () => {
           <Text style={estilosHistorial.subtituloPantalla}>Cada ingreso y cada gasto, claros y en un solo lugar.</Text>
         </View>
 
-        <TouchableOpacity style={estilosHistorial.botonDescargar}>
+        {filtroTab === 'todos' && <TouchableOpacity style={estilosHistorial.botonDescargar} onPress={confirmarExportacion} disabled={exportando || cargando || !!error} accessibilityRole="button">
           <Icon name="download-outline" size={20} color="#1A202C" />
-          <Text style={estilosHistorial.textoBotonDescargar}>Descargar PDF</Text>
-        </TouchableOpacity>
+          <Text style={estilosHistorial.textoBotonDescargar}>{exportando ? 'Generando reporte...' : 'Exportar reporte PDF'}</Text>
+        </TouchableOpacity>}
 
         <View style={estilosHistorial.tarjetaPrincipal}>
-          
+
           <View style={estilosHistorial.contenedorTabs}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[estilosHistorial.tab, filtroTab === 'todos' && estilosHistorial.tabActivo]}
               onPress={() => setFiltroTab('todos')}
             >
               <Text style={filtroTab === 'todos' ? estilosHistorial.textoTabActivo : estilosHistorial.textoTab}>Todos</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[estilosHistorial.tab, filtroTab === 'ingresos' && estilosHistorial.tabActivo]}
               onPress={() => setFiltroTab('ingresos')}
             >
               <Text style={filtroTab === 'ingresos' ? estilosHistorial.textoTabActivo : estilosHistorial.textoTab}>Ingresos</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[estilosHistorial.tab, filtroTab === 'egresos' && estilosHistorial.tabActivo]}
               onPress={() => setFiltroTab('egresos')}
             >
@@ -85,16 +114,15 @@ const PantallaHistorial = () => {
           <View style={estilosHistorial.filaBuscador}>
             <View style={estilosHistorial.cajaBuscador}>
               <Icon name="magnify" size={20} color="#A0AEC0" />
-              <TextInput 
+              <TextInput
                 style={estilosHistorial.inputBuscador}
                 placeholder="Buscar movimiento"
+                value={busqueda}
+                onChangeText={setBusqueda}
                 placeholderTextColor="#A0AEC0"
               />
             </View>
-            <TouchableOpacity style={estilosHistorial.cajaMes}>
-              <Text style={estilosHistorial.textoMes}>Octubre 2026</Text>
-              <Icon name="chevron-down" size={20} color="#A0AEC0" />
-            </TouchableOpacity>
+            <SelectorMes valor={mes} cambiar={setMes} permitirTodos />
           </View>
 
           <View style={estilosHistorial.encabezadoTabla}>
@@ -103,8 +131,13 @@ const PantallaHistorial = () => {
             <Text style={[estilosHistorial.textoEncabezado, { flex: 1.2, textAlign: 'right' }]}>Monto</Text>
           </View>
 
+          {cargando && <Text>Cargando operaciones...</Text>}
+          {error && <TouchableOpacity onPress={() => void recargar()}><Text>{error} Toca para reintentar.</Text></TouchableOpacity>}
+          {!cargando && !error && !movimientosFiltrados.length && <Text>No hay movimientos para mostrar.</Text>}
           {movimientosFiltrados.map((mov) => (
-            <View key={mov.id} style={estilosHistorial.filaMovimiento}>
+            <TouchableOpacity key={mov.id} style={estilosHistorial.filaMovimiento}
+              accessibilityRole="button" accessibilityLabel={`Editar ${mov.titulo}`}
+              disabled={cargando || !!error} onPress={() => setOperacionId(mov.id)}>
               <View style={estilosHistorial.ladoIzquierdo}>
                 <View style={[estilosHistorial.iconoContenedor, { backgroundColor: mov.colorFondo }]}>
                   <Icon name={mov.icono} size={20} color={mov.colorIcono} />
@@ -114,7 +147,7 @@ const PantallaHistorial = () => {
                   <Text style={estilosHistorial.categoriaMovimiento}>{mov.categoria}</Text>
                 </View>
               </View>
-              
+
               <View style={estilosHistorial.centroMovimiento}>
                 <Text style={estilosHistorial.fechaTexto}>{mov.fechaDia}</Text>
                 <Text style={estilosHistorial.fechaTexto}>{mov.fechaAnio}</Text>
@@ -124,7 +157,7 @@ const PantallaHistorial = () => {
                 <Text style={[estilosHistorial.montoTexto, { color: mov.colorMonto }]}>{mov.monto}</Text>
                 <Text style={estilosHistorial.tipoTexto}>{mov.tipo}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
 
           <View style={estilosHistorial.pieTarjeta}>
@@ -147,7 +180,7 @@ const PantallaHistorial = () => {
       >
         <TouchableOpacity style={estilosRegistrar.modalFondo} activeOpacity={1} onPressOut={() => setModalUsuarioVisible(false)}>
           <TouchableOpacity activeOpacity={1} style={estilosRegistrar.modalContenedorUsuario}>
-            
+
             <View style={estilosRegistrar.lineaArrastre} />
 
             <View style={estilosRegistrar.avatarGrande}>
@@ -187,7 +220,8 @@ const PantallaHistorial = () => {
 
           </TouchableOpacity>
         </TouchableOpacity>
-      </Modal>    
+      </Modal>
+      {operacionSeleccionada && <EditarOperacion key={operacionSeleccionada.id} operacion={operacionSeleccionada} cerrar={() => setOperacionId(null)} />}
     </SafeAreaView>
   );
 };

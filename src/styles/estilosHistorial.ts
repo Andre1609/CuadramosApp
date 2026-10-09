@@ -13,7 +13,8 @@ export const estilosHistorial = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 20) + -18 : 1,
+    marginTop:
+      Platform.OS === 'android' ? (StatusBar.currentHeight || 20) + -18 : 1,
     marginBottom: 15,
   },
   migasPan: {
@@ -245,13 +246,13 @@ export const estilosHistorial = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#C8005B', 
+    backgroundColor: '#C8005B',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 15,
   },
   textoPerfilCabecera: {
-    color: '#FFFFFF', 
+    color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 14,
   },
@@ -279,7 +280,7 @@ export const estilosHistorial = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#C8005B', 
+    backgroundColor: '#C8005B',
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
@@ -340,5 +341,5 @@ export const estilosHistorial = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
-  }
+  },
 });
