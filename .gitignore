@@ -76,3 +76,4 @@ yarn-error.log
 /setup-rn-env.sh
 
 
+hs_err_pid*.log
