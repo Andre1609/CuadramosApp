@@ -6,14 +6,15 @@ export const estilosRegistrar = StyleSheet.create({
     backgroundColor: '#F8F9FA',
   },
   contenedorScroll: {
-  padding: 20, 
-  paddingBottom: 0,
-},
+    padding: 20,
+    paddingBottom: 0,
+  },
   encabezadoSuperior: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 20) + -18 : 1,
+    marginTop:
+      Platform.OS === 'android' ? (StatusBar.currentHeight || 20) + -18 : 1,
     marginBottom: 15,
   },
   migasPan: {
@@ -233,13 +234,13 @@ export const estilosRegistrar = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#C8005B', 
+    backgroundColor: '#C8005B',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 15,
   },
   textoPerfilCabecera: {
-    color: '#FFFFFF', 
+    color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 14,
   },
@@ -267,7 +268,7 @@ export const estilosRegistrar = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#C8005B', 
+    backgroundColor: '#C8005B',
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
@@ -331,7 +332,7 @@ export const estilosRegistrar = StyleSheet.create({
   },
   modalFondoCentro: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', 
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,

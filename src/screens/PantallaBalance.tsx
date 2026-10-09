@@ -6,29 +6,34 @@ import { estilosBalance } from '../styles/estilosBalance';
 import { useFinanzas } from '../context/FinanzasContext';
 import { formatoMonto, resumenMes } from '../utils/finanzas';
 
+import SelectorMes from '../components/SelectorMes';
+import IndicadorBalance from '../components/IndicadorBalance';
+import { claveMes, inicioMes } from '../utils/fechas';
+
 const PantallaBalance = () => {
   const { operaciones, cargando, error, recargar } = useFinanzas();
-  const resumen = resumenMes(operaciones);
+  const [mes, setMes] = useState(() => claveMes());
+  const resumen = resumenMes(operaciones, inicioMes(mes));
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
 
   return (
     <SafeAreaView style={estilosBalance.areaSegura}>
       <StatusBar barStyle="dark-content" />
-      
+
       <ScrollView contentContainerStyle={estilosBalance.contenedorScroll} showsVerticalScrollIndicator={false}>
-        
+
         <View style={estilosBalance.encabezadoSuperior}>
           <View style={estilosBalance.migasPan}>
             <Text style={estilosBalance.textoMigaInactivo}>Mi billetera  {'>'}  </Text>
             <Text style={estilosBalance.textoMigaActivo}>Balance</Text>
           </View>
-          
+
           <View style={estilosBalance.contenedorIconosCabecera}>
             <TouchableOpacity>
               <Icon name="bell-outline" size={24} color="#C8005B" />
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={estilosBalance.botonPerfilCabecera}
               onPress={() => setModalUsuarioVisible(true)}
             >
@@ -45,21 +50,13 @@ const PantallaBalance = () => {
         {cargando && <Text>Cargando operaciones...</Text>}
         {error && <TouchableOpacity onPress={() => void recargar()}><Text>{error} Toca para reintentar.</Text></TouchableOpacity>}
         <View style={estilosBalance.tarjetaBalance}>
-          
+
           <View style={estilosBalance.cabeceraSelector}>
             <Text style={estilosBalance.tituloTarjeta}>Resumen del mes</Text>
-            <View style={estilosBalance.selectorMes}>
-              <Text style={estilosBalance.textoMes}>{new Date().toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</Text>
-              <Icon name="chevron-down" size={16} color="#A0AEC0" />
-            </View>
+            <SelectorMes valor={mes} cambiar={setMes} />
           </View>
 
-          <View style={estilosBalance.contenedorGrafico}>
-            <View style={estilosBalance.anilloGrafico}>
-              <Text style={estilosBalance.emojiGrafico}>🤩</Text>
-              <Text style={estilosBalance.textoEstadoGrafico}>{resumen.estado}</Text>
-            </View>
-          </View>
+          <IndicadorBalance ingresos={resumen.ingresos} egresos={resumen.egresos} />
 
           <View style={estilosBalance.filaTarjetasPequeñas}>
             <View style={[estilosBalance.tarjetaPequeña, { marginRight: 8 }]}>
@@ -128,13 +125,13 @@ const PantallaBalance = () => {
         visible={modalUsuarioVisible}
         onRequestClose={() => setModalUsuarioVisible(false)}
       >
-        <TouchableOpacity 
-          style={estilosBalance.modalFondo} 
-          activeOpacity={1} 
+        <TouchableOpacity
+          style={estilosBalance.modalFondo}
+          activeOpacity={1}
           onPressOut={() => setModalUsuarioVisible(false)}
         >
           <TouchableOpacity activeOpacity={1} style={estilosBalance.modalContenedorUsuario}>
-            
+
             <View style={estilosBalance.lineaArrastre} />
 
             <View style={estilosBalance.avatarGrande}>
@@ -142,7 +139,7 @@ const PantallaBalance = () => {
             </View>
 
             <Text style={estilosBalance.nombreUsuarioModal}>Carlos Flores Reyes</Text>
-            
+
             <View style={estilosBalance.badgeVerificado}>
               <Icon name="check" size={14} color="#1E8E3E" />
               <Text style={estilosBalance.textoBadgeVerificado}>Cuenta verificada</Text>
@@ -168,7 +165,7 @@ const PantallaBalance = () => {
               <Text style={estilosBalance.valorDato}>Octubre 2026</Text>
             </View>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={estilosBalance.botonCerrarSesion}
               onPress={() => setModalUsuarioVisible(false)}
             >

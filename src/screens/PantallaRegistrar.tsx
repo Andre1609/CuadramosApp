@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { PestanasPrincipales } from '../types/navegacion';
 import { View, Text, SafeAreaView, TouchableOpacity, TextInput, ScrollView, StatusBar, Modal, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { estilosRegistrar } from '../styles/estilosRegistrar.ts';
@@ -7,8 +9,12 @@ import { cuentas, categoriasPorTipo, TipoOperacion } from '../types/finanzas';
 import { useFinanzas } from '../context/FinanzasContext';
 import { montoACentimos } from '../utils/finanzas';
 
-const PantallaRegistrar = () => {
+import CampoFecha from '../components/CampoFecha';
+import { fechaTexto, fechaDesdeTexto } from '../utils/fechas';
+
+const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasPrincipales, 'Registrar'>) => {
   const [tipoOperacion, setTipoOperacion] = useState<TipoOperacion>('egreso');
+  const [fecha, setFecha] = useState(() => fechaTexto());
   const [monto, setMonto] = useState('');
   const [concepto, setConcepto] = useState('');
   const [cuentaSeleccionada, setCuentaSeleccionada] = useState(cuentas[0].id);
@@ -17,6 +23,18 @@ const PantallaRegistrar = () => {
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
   const [modalMetaVisible, setModalMetaVisible] = useState(false); 
   const [metaMes, setMetaMes] = useState('');
+
+  const cuentaRecibida = route.params?.cuentaId;
+  useEffect(() => {
+    if (cuentaRecibida === undefined) { return; }
+    if (cuentas.some(cuenta => cuenta.id === cuentaRecibida)) {
+      setCuentaSeleccionada(cuentaRecibida);
+      setDropdownAbierto(null);
+    }
+    // Consumir el parámetro permite volver a abrir la misma cuenta y
+    // evita sobrescribir una selección manual al regresar a la pestaña.
+    navigation.setParams({ cuentaId: undefined });
+  }, [cuentaRecibida, navigation]);
 
   const { registrar, cargando, error, recargar } = useFinanzas();
   const [guardando, setGuardando] = useState(false);
@@ -32,8 +50,9 @@ const PantallaRegistrar = () => {
     try {
       if (!concepto.trim()) { throw new Error('Escribe el concepto de la operación.'); }
       await registrar({ tipo: tipoOperacion, montoCentimos: montoACentimos(monto), concepto,
-        cuentaId: cuentaSeleccionada, categoria: categoriaSeleccionada });
+        cuentaId: cuentaSeleccionada, categoria: categoriaSeleccionada, fecha: fechaDesdeTexto(fecha) });
       setMonto('');
+      setFecha(fechaTexto());
       setConcepto('');
       Alert.alert('Operación guardada', 'Ya puedes verla en Inicio, Historial y Balance.');
     } catch (fallo) {
@@ -214,6 +233,7 @@ const PantallaRegistrar = () => {
             )}
           </View>
 
+          <CampoFecha valor={fecha} cambiar={setFecha} deshabilitado={guardando} />
           <TouchableOpacity style={estilosRegistrar.botonGuardar} onPress={guardar} disabled={guardando || cargando || !!error}>
             <Icon name="plus" size={20} color="#FFFFFF" />
             <Text style={estilosRegistrar.textoBotonGuardar}>{guardando ? 'Guardando...' : cargando ? 'Cargando...' : 'Guardar operación'}</Text>

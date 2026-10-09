@@ -11,6 +11,16 @@ interface Finanzas {
   editar: (id: string, datos: NuevaOperacion) => Promise<void>;
   eliminar: (id: string) => Promise<void>;
 }
+function validarFecha(fecha?: string) {
+  if (fecha === undefined) { return; }
+  const instante = new Date(fecha);
+  const hoy = new Date();
+  hoy.setHours(23, 59, 59, 999);
+  if (!Number.isFinite(instante.getTime()) || instante.getFullYear() < 1900 || instante > hoy) {
+    throw new Error('Selecciona una fecha válida que no sea posterior a hoy.');
+  }
+}
+const ordenar = (lista: Operacion[]) => [...lista].sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
 const Contexto = createContext<Finanzas | null>(null);
 
 export function FinanzasProvider({ children }: { children: React.ReactNode }) {
@@ -23,7 +33,7 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
   async function recargar() {
     setCargando(true);
     try {
-      actuales.current = await cargarOperaciones();
+      actuales.current = ordenar(await cargarOperaciones());
       setOperaciones(actuales.current);
       setError(null);
     } catch {
@@ -33,6 +43,7 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { void recargar(); }, []);
 
   async function registrar(datos: NuevaOperacion) {
+    validarFecha(datos.fecha);
     if (cargando || error) { throw new Error('Espera a que se carguen tus operaciones.'); }
     if (ocupado.current) { throw new Error('Se está guardando una operación.'); }
     if (!datos.concepto.trim() || !Number.isSafeInteger(datos.montoCentimos) || datos.montoCentimos <= 0 ||
@@ -42,14 +53,15 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
     }
     ocupado.current = true;
     try {
-      const nueva: Operacion = { ...datos, concepto: datos.concepto.trim(), fecha: new Date().toISOString(), id: `${Date.now()}-${Math.random().toString(36).slice(2)}` };
-      const siguientes = [nueva, ...actuales.current];
+      const nueva: Operacion = { ...datos, concepto: datos.concepto.trim(), fecha: datos.fecha ?? new Date().toISOString(), id: `${Date.now()}-${Math.random().toString(36).slice(2)}` };
+      const siguientes = ordenar([nueva, ...actuales.current]);
       await guardarOperaciones(siguientes);
-      actuales.current = siguientes;
-      setOperaciones(siguientes);
+      actuales.current = ordenar(siguientes);
+      setOperaciones(actuales.current);
     } finally { ocupado.current = false; }
   }
   async function modificar(id: string, datos?: NuevaOperacion) {
+    validarFecha(datos?.fecha);
     if (cargando || error) { throw new Error('Espera a que se carguen tus operaciones.'); }
     if (ocupado.current) { throw new Error('Hay otra operación en proceso.'); }
     if (!actuales.current.some(op => op.id === id)) { throw new Error('La operación ya no existe.'); }
@@ -62,11 +74,11 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
     ocupado.current = true;
     try {
       const siguientes = datos
-        ? actuales.current.map(op => op.id === id ? { ...op, ...datos, concepto: datos.concepto.trim(), id: op.id, fecha: op.fecha } : op)
+        ? actuales.current.map(op => op.id === id ? { ...op, ...datos, concepto: datos.concepto.trim(), id: op.id, fecha: datos.fecha ?? op.fecha } : op)
         : actuales.current.filter(op => op.id !== id);
       await guardarOperaciones(siguientes);
-      actuales.current = siguientes;
-      setOperaciones(siguientes);
+      actuales.current = ordenar(siguientes);
+      setOperaciones(actuales.current);
     } finally { ocupado.current = false; }
   }
   const editar = (id: string, datos: NuevaOperacion) => modificar(id, datos);

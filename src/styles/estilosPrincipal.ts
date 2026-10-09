@@ -12,19 +12,20 @@ export const estilos = StyleSheet.create({
   modalFondo: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center', 
-    alignItems: 'center',     
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalFondoPerfil: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end', 
+    justifyContent: 'flex-end',
   },
   encabezadoSuperior: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 20) + -18 : 1,
+    marginTop:
+      Platform.OS === 'android' ? (StatusBar.currentHeight || 20) + -18 : 1,
     marginBottom: 15,
   },
   migasPan: {
@@ -34,16 +35,13 @@ export const estilos = StyleSheet.create({
   textoMigaInactivo: {
     color: '#A0AEC0',
     fontSize: 14,
-    
   },
   textoMigaActivo: {
     color: '#1A202C',
     fontSize: 14,
     fontWeight: 'bold',
   },
-  iconoCampana: {
-    
-  },
+  iconoCampana: {},
   cabecera: {
     marginBottom: 20,
   },
@@ -94,8 +92,8 @@ export const estilos = StyleSheet.create({
   contenedorMonto: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginTop: -10, 
-    marginBottom: 5, 
+    marginTop: -10,
+    marginBottom: 5,
   },
   simboloMoneda: {
     color: '#FFFFFF',
@@ -108,6 +106,11 @@ export const estilos = StyleSheet.create({
     fontSize: 42,
     fontWeight: '900',
     letterSpacing: -1,
+    flexShrink: 1,
+  },
+  montoOculto: {
+    fontSize: 28,
+    letterSpacing: 3,
   },
   textoMoneda: {
     color: '#FFFFFF',
@@ -127,7 +130,7 @@ export const estilos = StyleSheet.create({
     justifyContent: 'space-between',
   },
   botonSecundario: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingVertical: 12,
     paddingHorizontal: 15,
     borderRadius: 12,
@@ -169,12 +172,12 @@ export const estilos = StyleSheet.create({
     borderColor: '#F3D2DF',
   },
   tarjetaDorada: {
-    backgroundColor: '#FFF9E6', 
+    backgroundColor: '#FFF9E6',
     borderRadius: 20,
     padding: 20,
     marginTop: 20,
     position: 'relative',
-    overflow: 'hidden', 
+    overflow: 'hidden',
   },
   filaEtiquetaDorada: {
     flexDirection: 'row',
@@ -182,7 +185,7 @@ export const estilos = StyleSheet.create({
     marginBottom: 15,
   },
   textoEtiquetaDorada: {
-    color: '#A67C00', 
+    color: '#A67C00',
     fontSize: 12,
     fontWeight: 'bold',
     letterSpacing: 1,
@@ -194,7 +197,7 @@ export const estilos = StyleSheet.create({
     fontWeight: '900',
     lineHeight: 28,
     marginBottom: 10,
-    maxWidth: '85%', 
+    maxWidth: '85%',
   },
   subtituloDorado: {
     color: '#718096',
@@ -215,7 +218,7 @@ export const estilos = StyleSheet.create({
   },
   iconoEstrellaDecorativa: {
     position: 'absolute',
-    right: -3, 
+    right: -3,
     top: '30%',
     opacity: 0.4,
   },
@@ -278,7 +281,6 @@ export const estilos = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#1A202C',
-   
   },
   subtituloCuenta: {
     fontSize: 12,
@@ -299,10 +301,10 @@ export const estilos = StyleSheet.create({
     marginTop: 2,
   },
   modalContenedor: {
-    width: '90%', 
-    maxHeight: '85%', 
+    width: '90%',
+    maxHeight: '85%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 24, 
+    borderRadius: 24,
     padding: 20,
     elevation: 10,
     shadowColor: '#000',
@@ -348,6 +350,24 @@ export const estilos = StyleSheet.create({
     color: '#A0AEC0',
     fontSize: 12,
   },
+  listaMovimientosCuenta: {
+    flexShrink: 1,
+    width: '100%',
+  },
+  filaMovimientoCuenta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDF2F7',
+  },
+  columnaMovimientoCuenta: { flex: 1.6, minWidth: 0, paddingRight: 8 },
+  columnaFechaCuenta: { flex: 1, minWidth: 0, paddingHorizontal: 4 },
+  columnaMontoCuenta: { flex: 1.4, minWidth: 0, paddingLeft: 4 },
+  tituloMovimientoCuenta: { fontSize: 14, fontWeight: '600', color: '#1A202C' },
+  detalleMovimientoCuenta: { fontSize: 12, color: '#718096', marginTop: 3 },
+  fechaMovimientoCuenta: { textAlign: 'center' },
+  montoMovimientoCuenta: { textAlign: 'right' },
   estadoVacioContenedor: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -547,7 +567,7 @@ export const estilos = StyleSheet.create({
     borderRadius: 80,
     borderWidth: 16,
     borderColor: '#C8005B',
-    borderTopColor: '#FFB81C', 
+    borderTopColor: '#FFB81C',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -655,17 +675,17 @@ export const estilos = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#C8005B', 
+    backgroundColor: '#C8005B',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 15,
   },
   textoPerfilCabecera: {
-    color: '#FFFFFF', 
+    color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 14,
   },
-  
+
   modalContenedorUsuario: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
@@ -685,7 +705,7 @@ export const estilos = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#C8005B', 
+    backgroundColor: '#C8005B',
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
@@ -746,5 +766,5 @@ export const estilos = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
-  }
+  },
 });

@@ -7,13 +7,14 @@ export const estilosBalance = StyleSheet.create({
   },
   contenedorScroll: {
     padding: 20,
-    paddingBottom: 30, 
+    paddingBottom: 30,
   },
   encabezadoSuperior: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 20) + -18 : 1,
+    marginTop:
+      Platform.OS === 'android' ? (StatusBar.currentHeight || 20) + -18 : 1,
     marginBottom: 15,
   },
   migasPan: {
@@ -104,7 +105,7 @@ export const estilosBalance = StyleSheet.create({
     borderRadius: 90,
     borderWidth: 18,
     borderColor: '#C8005B',
-    borderTopColor: '#FFB81C', 
+    borderTopColor: '#FFB81C',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -341,5 +342,5 @@ export const estilosBalance = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
-  }
+  },
 });

@@ -13,9 +13,10 @@ import PantallaBalance from './src/screens/PantallaBalance.tsx';
 import { estilosNavegacion } from './src/styles/estilosNavegacion';
 
 import { FinanzasProvider } from './src/context/FinanzasContext';
+import type { PestanasPrincipales } from './src/types/navegacion';
 
 const Stack = createStackNavigator();
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<PestanasPrincipales>();
 
 const MisTabs = () => {
   return (

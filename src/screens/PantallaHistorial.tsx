@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { Alert } from 'react-native';
+import { exportarReporte } from '../services/exportarReporte';
+import { etiquetaMes } from '../utils/fechas';
 import { View, Text, SafeAreaView, TouchableOpacity, TextInput, ScrollView, StatusBar, Modal } from 'react-native';import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { estilosHistorial } from '../styles/estilosHistorial';
 import { estilosRegistrar } from '../styles/estilosRegistrar';
@@ -8,11 +11,35 @@ import { movimientoVisual } from '../utils/finanzas';
 import EditarOperacion from '../components/EditarOperacion';
 
 
+import SelectorMes from '../components/SelectorMes';
+import { claveMes } from '../utils/fechas';
+
 const PantallaHistorial = () => {
   const { operaciones, cargando, error, recargar } = useFinanzas();
   const [operacionId, setOperacionId] = useState<string | null>(null);
   const operacionSeleccionada = operaciones.find(op => op.id === operacionId);
-  const todosLosMovimientos = operaciones.map(movimientoVisual);
+  const [mes, setMes] = useState('');
+  const [exportando, setExportando] = useState(false);
+  const exportacionOcupada = useRef(false);
+  const confirmarExportacion = () => {
+    if (exportacionOcupada.current || cargando || error) { return; }
+    const periodo = mes ? etiquetaMes(mes) : 'Todos los meses';
+    const copia = [...operaciones];
+    const mesReporte = mes;
+    Alert.alert('Exportar reporte PDF',
+      `Periodo: ${periodo}. Se incluirán todos los ingresos y egresos de este periodo, sin aplicar la búsqueda ni el filtro por tipo.`, [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Generar PDF', onPress: async () => {
+          if (exportacionOcupada.current) { return; }
+          exportacionOcupada.current = true;
+          setExportando(true);
+          try { await exportarReporte(copia, mesReporte); }
+          catch { Alert.alert('No se pudo exportar', 'Inténtalo nuevamente. Si acabas de actualizar la app, recompílala para habilitar la función de compartir PDF.'); }
+          finally { exportacionOcupada.current = false; setExportando(false); }
+        } },
+      ]);
+  };
+  const todosLosMovimientos = operaciones.filter(op => !mes || claveMes(new Date(op.fecha)) === mes).map(movimientoVisual);
   const [busqueda, setBusqueda] = useState('');
   const [filtroTab, setFiltroTab] = useState('todos');
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
@@ -29,9 +56,9 @@ const PantallaHistorial = () => {
   return (
     <SafeAreaView style={estilosHistorial.areaSegura}>
       <StatusBar barStyle="dark-content" />
-      
+
       <ScrollView contentContainerStyle={estilosHistorial.contenedorScroll}>
-        
+
         <View style={estilosHistorial.encabezadoSuperior}>
           <View style={estilosHistorial.migasPan}>
             <Text style={estilosHistorial.textoMigaInactivo}>Mi billetera  {'>'}  </Text>
@@ -41,8 +68,8 @@ const PantallaHistorial = () => {
             <TouchableOpacity>
               <Icon name="bell-outline" size={24} color="#C8005B" />
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={estilosRegistrar.botonPerfilCabecera}
               onPress={() => setModalUsuarioVisible(true)}
             >
@@ -56,27 +83,27 @@ const PantallaHistorial = () => {
           <Text style={estilosHistorial.subtituloPantalla}>Cada ingreso y cada gasto, claros y en un solo lugar.</Text>
         </View>
 
-        <TouchableOpacity style={estilosHistorial.botonDescargar}>
+        {filtroTab === 'todos' && <TouchableOpacity style={estilosHistorial.botonDescargar} onPress={confirmarExportacion} disabled={exportando || cargando || !!error} accessibilityRole="button">
           <Icon name="download-outline" size={20} color="#1A202C" />
-          <Text style={estilosHistorial.textoBotonDescargar}>Descargar PDF</Text>
-        </TouchableOpacity>
+          <Text style={estilosHistorial.textoBotonDescargar}>{exportando ? 'Generando reporte...' : 'Exportar reporte PDF'}</Text>
+        </TouchableOpacity>}
 
         <View style={estilosHistorial.tarjetaPrincipal}>
-          
+
           <View style={estilosHistorial.contenedorTabs}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[estilosHistorial.tab, filtroTab === 'todos' && estilosHistorial.tabActivo]}
               onPress={() => setFiltroTab('todos')}
             >
               <Text style={filtroTab === 'todos' ? estilosHistorial.textoTabActivo : estilosHistorial.textoTab}>Todos</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[estilosHistorial.tab, filtroTab === 'ingresos' && estilosHistorial.tabActivo]}
               onPress={() => setFiltroTab('ingresos')}
             >
               <Text style={filtroTab === 'ingresos' ? estilosHistorial.textoTabActivo : estilosHistorial.textoTab}>Ingresos</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[estilosHistorial.tab, filtroTab === 'egresos' && estilosHistorial.tabActivo]}
               onPress={() => setFiltroTab('egresos')}
             >
@@ -87,7 +114,7 @@ const PantallaHistorial = () => {
           <View style={estilosHistorial.filaBuscador}>
             <View style={estilosHistorial.cajaBuscador}>
               <Icon name="magnify" size={20} color="#A0AEC0" />
-              <TextInput 
+              <TextInput
                 style={estilosHistorial.inputBuscador}
                 placeholder="Buscar movimiento"
                 value={busqueda}
@@ -95,10 +122,7 @@ const PantallaHistorial = () => {
                 placeholderTextColor="#A0AEC0"
               />
             </View>
-            <TouchableOpacity style={estilosHistorial.cajaMes}>
-              <Text style={estilosHistorial.textoMes}>Todos los meses</Text>
-              <Icon name="chevron-down" size={20} color="#A0AEC0" />
-            </TouchableOpacity>
+            <SelectorMes valor={mes} cambiar={setMes} permitirTodos />
           </View>
 
           <View style={estilosHistorial.encabezadoTabla}>
@@ -123,7 +147,7 @@ const PantallaHistorial = () => {
                   <Text style={estilosHistorial.categoriaMovimiento}>{mov.categoria}</Text>
                 </View>
               </View>
-              
+
               <View style={estilosHistorial.centroMovimiento}>
                 <Text style={estilosHistorial.fechaTexto}>{mov.fechaDia}</Text>
                 <Text style={estilosHistorial.fechaTexto}>{mov.fechaAnio}</Text>
@@ -156,7 +180,7 @@ const PantallaHistorial = () => {
       >
         <TouchableOpacity style={estilosRegistrar.modalFondo} activeOpacity={1} onPressOut={() => setModalUsuarioVisible(false)}>
           <TouchableOpacity activeOpacity={1} style={estilosRegistrar.modalContenedorUsuario}>
-            
+
             <View style={estilosRegistrar.lineaArrastre} />
 
             <View style={estilosRegistrar.avatarGrande}>

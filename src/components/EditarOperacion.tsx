@@ -5,8 +5,12 @@ import { useFinanzas } from '../context/FinanzasContext';
 import { montoACentimos } from '../utils/finanzas';
 import { estilosEditarOperacion as estilos } from '../styles/estilosEditarOperacion';
 
+import CampoFecha from './CampoFecha';
+import { fechaTexto, fechaDesdeTexto } from '../utils/fechas';
+
 export default function EditarOperacion({ operacion, cerrar }: { operacion: Operacion; cerrar: () => void }) {
   const { editar, eliminar } = useFinanzas();
+  const [fecha, setFecha] = useState(() => fechaTexto(new Date(operacion.fecha)));
   const [tipo, setTipo] = useState<TipoOperacion>(operacion.tipo);
   const [monto, setMonto] = useState((operacion.montoCentimos / 100).toFixed(2));
   const [concepto, setConcepto] = useState(operacion.concepto);
@@ -21,7 +25,7 @@ export default function EditarOperacion({ operacion, cerrar }: { operacion: Oper
     setGuardando(true);
     try {
       if (borrar) { await eliminar(operacion.id); }
-      else { await editar(operacion.id, { tipo, montoCentimos: montoACentimos(monto), concepto, cuentaId, categoria }); }
+      else { await editar(operacion.id, { tipo, montoCentimos: montoACentimos(monto), concepto, cuentaId, categoria, fecha: fecha === fechaTexto(new Date(operacion.fecha)) ? operacion.fecha : fechaDesdeTexto(fecha) }); }
       cerrar();
     } catch (error) {
       Alert.alert('No se pudo completar', error instanceof Error ? error.message : 'Inténtalo nuevamente.');
@@ -40,7 +44,8 @@ export default function EditarOperacion({ operacion, cerrar }: { operacion: Oper
         <KeyboardAvoidingView style={estilos.fondo} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView contentContainerStyle={estilos.contenido} keyboardShouldPersistTaps="handled">
             <Text style={estilos.titulo}>Editar operación</Text>
-            <Text style={estilos.texto}>Registrada el {new Date(operacion.fecha).toLocaleDateString('es-PE')}</Text>
+            <Text style={estilos.texto}>Fecha actual: {new Date(operacion.fecha).toLocaleDateString('es-PE')}</Text>
+            <CampoFecha valor={fecha} cambiar={setFecha} deshabilitado={guardando} />
             <Text style={estilos.etiqueta}>Tipo</Text>
             <View style={estilos.opciones}>
               {(['ingreso', 'egreso'] as const).map(valor => (
