@@ -4,13 +4,16 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BlurView } from '@react-native-community/blur';
 import { estilos } from '../styles/estilosPrincipal';
 
+import { useAuth } from '../context/AuthContext';
 
 import { useFinanzas } from '../context/FinanzasContext';
 import { formatoMonto, movimientoVisual } from '../utils/finanzas';
 import { cuentas } from '../types/finanzas';
+import { estilosBalance } from '../styles/estilosBalance';
 
 const PantallaPrincipal = ({ navigation }: any) => {
   const { operaciones, cargando, error, recargar } = useFinanzas();
+  const { nombre, iniciales, cerrarSesion, usuario } = useAuth();
   const misCuentasData = cuentas.map(cuenta => {
     const movimientos = operaciones.filter(op => op.cuentaId === cuenta.id);
     const centimos = movimientos.reduce((total, op) => total + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos), 0);
@@ -53,14 +56,14 @@ const PantallaPrincipal = ({ navigation }: any) => {
               style={estilos.botonPerfilCabecera}
               onPress={() => setModalUsuarioVisible(true)}
             >
-              <Text style={estilos.textoPerfilCabecera}>CF</Text>
+              <Text style={estilos.textoPerfilCabecera}>{iniciales}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         <View style={estilos.cabecera}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={estilos.saludo}>Hola, Carlos </Text>
+            <Text style={estilos.saludo}>Hola, {nombre} </Text>
             <Icon name="hand-wave" size={28} color="#FFB81C" />
           </View>
           <Text style={estilos.subtitulo}>Qué bueno verte. Vamos a poner tus finanzas en orden.</Text>
@@ -231,10 +234,10 @@ const PantallaPrincipal = ({ navigation }: any) => {
             <View style={estilos.lineaArrastre} />
 
             <View style={estilos.avatarGrande}>
-              <Text style={estilos.textoAvatarGrande}>CF</Text>
+              <Text style={estilos.textoAvatarGrande}>{iniciales}</Text>
             </View>
 
-            <Text style={estilos.nombreUsuarioModal}>Carlos Flores Reyes</Text>
+            <Text style={estilos.nombreUsuarioModal}>{nombre}</Text>
 
             <View style={estilos.badgeVerificado}>
               <Icon name="check" size={14} color="#1E8E3E" />
@@ -242,29 +245,23 @@ const PantallaPrincipal = ({ navigation }: any) => {
             </View>
 
             <View style={estilos.filaDatoUsuario}>
-              <Text style={estilos.etiquetaDato}>Nombres</Text>
-              <Text style={estilos.valorDato}>Carlos</Text>
+            <Text style={estilos.etiquetaDato}>Usuario</Text>
+            <Text style={estilos.valorDato}>{nombre}</Text>
             </View>
 
-            <View style={estilos.filaDatoUsuario}>
-              <Text style={estilos.etiquetaDato}>Apellidos</Text>
-              <Text style={estilos.valorDato}>Flores Reyes</Text>
+            <View style={estilosBalance.filaDatoUsuario}>
+              <Text style={estilosBalance.etiquetaDato}>Cliente desde</Text>
+              <Text style={estilosBalance.valorDato}>{new Date(usuario?.created_at ?? Date.now()).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</Text>
             </View>
 
-            <View style={estilos.filaDatoUsuario}>
-              <Text style={estilos.etiquetaDato}>Celular</Text>
-              <Text style={estilos.valorDato}>936 364 474</Text>
-            </View>
-
-            <View style={estilos.filaDatoUsuario}>
-              <Text style={estilos.etiquetaDato}>Cliente desde</Text>
-              <Text style={estilos.valorDato}>Octubre 2026</Text>
-            </View>
-
-            <TouchableOpacity style={estilos.botonCerrarSesion} onPress={() => setModalUsuarioVisible(false)}>
-              <Text style={estilos.textoBotonCerrarSesion}>Cerrar Sesión</Text>
-            </TouchableOpacity>
-
+            <TouchableOpacity
+            style={estilos.botonCerrarSesion}
+            onPress={async () => {
+              setModalUsuarioVisible(false);
+              await cerrarSesion();
+            }}>
+            <Text style={estilos.textoBotonCerrarSesion}>Cerrar Sesión</Text>
+          </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>

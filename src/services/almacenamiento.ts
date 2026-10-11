@@ -1,11 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Operacion, cuentas, categoriasPorTipo } from '../types/finanzas';
 
-// Espacio local provisional. Al integrar el login, usar un espacio por usuario.
-const CLAVE = '@cuadramos/operaciones/local/v1';
+// espacio de almacenamiento distinto por cada usuario
+const claveUsuario = (usuarioId: string) =>
+  `@cuadramos/operaciones/${usuarioId}/v1`;
 
-export async function cargarOperaciones(): Promise<Operacion[]> {
-  const texto = await AsyncStorage.getItem(CLAVE);
+export async function cargarOperaciones(
+  usuarioId: string,
+): Promise<Operacion[]> {
+  const texto = await AsyncStorage.getItem(claveUsuario(usuarioId));
   if (!texto) {
     return [];
   }
@@ -35,7 +38,11 @@ export async function cargarOperaciones(): Promise<Operacion[]> {
 }
 
 export async function guardarOperaciones(
+  usuarioId: string,
   operaciones: Operacion[],
 ): Promise<void> {
-  await AsyncStorage.setItem(CLAVE, JSON.stringify(operaciones));
+  await AsyncStorage.setItem(
+    claveUsuario(usuarioId),
+    JSON.stringify(operaciones),
+  );
 }

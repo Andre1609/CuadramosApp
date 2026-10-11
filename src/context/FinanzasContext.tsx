@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { NuevaOperacion, Operacion, cuentas, categoriasPorTipo } from '../types/finanzas';
+import { useAuth } from './AuthContext';
 import { cargarOperaciones, guardarOperaciones } from '../services/almacenamiento';
 
 interface Finanzas {
@@ -29,18 +30,22 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
   const ocupado = useRef(false);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { usuario } = useAuth();
+  const usuarioId = usuario?.id ?? '';
 
-  async function recargar() {
+  const recargar = useCallback(async () => {
     setCargando(true);
     try {
-      actuales.current = ordenar(await cargarOperaciones());
+      actuales.current = ordenar(await cargarOperaciones(usuarioId));
       setOperaciones(actuales.current);
       setError(null);
     } catch {
       setError('No se pudieron cargar tus operaciones. Reintenta para continuar.');
     } finally { setCargando(false); }
-  }
-  useEffect(() => { void recargar(); }, []);
+  }, [usuarioId]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { void recargar(); }, [usuarioId]);
 
   async function registrar(datos: NuevaOperacion) {
     validarFecha(datos.fecha);
@@ -55,7 +60,7 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
     try {
       const nueva: Operacion = { ...datos, concepto: datos.concepto.trim(), fecha: datos.fecha ?? new Date().toISOString(), id: `${Date.now()}-${Math.random().toString(36).slice(2)}` };
       const siguientes = ordenar([nueva, ...actuales.current]);
-      await guardarOperaciones(siguientes);
+      await guardarOperaciones(usuarioId,siguientes);
       actuales.current = ordenar(siguientes);
       setOperaciones(actuales.current);
     } finally { ocupado.current = false; }
@@ -76,7 +81,7 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
       const siguientes = datos
         ? actuales.current.map(op => op.id === id ? { ...op, ...datos, concepto: datos.concepto.trim(), id: op.id, fecha: datos.fecha ?? op.fecha } : op)
         : actuales.current.filter(op => op.id !== id);
-      await guardarOperaciones(siguientes);
+      await guardarOperaciones(usuarioId, siguientes);
       actuales.current = ordenar(siguientes);
       setOperaciones(actuales.current);
     } finally { ocupado.current = false; }
