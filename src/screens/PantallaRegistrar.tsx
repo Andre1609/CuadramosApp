@@ -5,7 +5,7 @@ import { View, Text, SafeAreaView, TouchableOpacity, TextInput, ScrollView, Stat
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { estilosRegistrar } from '../styles/estilosRegistrar';
 
-import { cuentas, categoriasPorTipo, TipoOperacion } from '../types/finanzas';
+import { cuentasFinancieras as cuentas, categoriasPorTipo, TipoOperacion } from '../types/finanzas';
 import { useFinanzas } from '../context/FinanzasContext';
 import { montoACentimos } from '../utils/finanzas';
 
@@ -22,7 +22,7 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Otros');
   const [dropdownAbierto, setDropdownAbierto] = useState<string | null>(null);
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
-  const [modalMetaVisible, setModalMetaVisible] = useState(false); 
+  const [modalMetaVisible, setModalMetaVisible] = useState(false);
   const [metaMes, setMetaMes] = useState('');
 
   const cuentaRecibida = route.params?.cuentaId;
@@ -55,7 +55,7 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
       setMonto('');
       setFecha(fechaTexto());
       setConcepto('');
-      Alert.alert('Operación guardada', 'Ya puedes verla en Inicio, Historial y Balance.');
+      Alert.alert('Operación guardada' ,'Tu movimiento se guardó correctamente.');
     } catch (fallo) {
       Alert.alert('No se pudo guardar', fallo instanceof Error ? fallo.message : 'Inténtalo nuevamente.');
     } finally { setGuardando(false); }
@@ -82,7 +82,7 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
   return (
     <SafeAreaView style={estilosRegistrar.areaSegura}>
       <StatusBar barStyle="dark-content" />
-      
+
       <ScrollView contentContainerStyle={estilosRegistrar.contenedorScroll} keyboardShouldPersistTaps="handled">
         <View style={estilosRegistrar.encabezadoSuperior}>
           <View style={estilosRegistrar.migasPan}>
@@ -93,8 +93,8 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
             <TouchableOpacity>
               <Icon name="bell-outline" size={24} color="#C8005B" />
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={estilosRegistrar.botonPerfilCabecera}
               onPress={() => setModalUsuarioVisible(true)}
             >
@@ -114,36 +114,36 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
           <Text style={estilosRegistrar.tituloPrincipal}>¿Qué vamos a registrar?</Text>
 
           <View style={estilosRegistrar.contenedorTabs}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
-                estilosRegistrar.tabBoton, 
-                estilosRegistrar.tabIngreso, 
+                estilosRegistrar.tabBoton,
+                estilosRegistrar.tabIngreso,
                 tipoOperacion === 'ingreso' ? estilosRegistrar.tabIngresoActivo : estilosRegistrar.tabInactivo
               ]}
               onPress={() => cambiarTipo('ingreso')}
             >
-              <Icon 
-                name="arrow-bottom-left" 
-                size={20} 
-                color={tipoOperacion === 'ingreso' ? '#1E8E3E' : '#A0AEC0'} 
+              <Icon
+                name="arrow-bottom-left"
+                size={20}
+                color={tipoOperacion === 'ingreso' ? '#1E8E3E' : '#A0AEC0'}
               />
               <Text style={tipoOperacion === 'ingreso' ? estilosRegistrar.textoTabIngresoActivo : estilosRegistrar.textoTabInactivo}>
                 Ingreso
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
-                estilosRegistrar.tabBoton, 
-                estilosRegistrar.tabEgreso, 
+                estilosRegistrar.tabBoton,
+                estilosRegistrar.tabEgreso,
                 tipoOperacion === 'egreso' ? estilosRegistrar.tabEgresoActivo : estilosRegistrar.tabInactivo
               ]}
               onPress={() => cambiarTipo('egreso')}
             >
-              <Icon 
-                name="arrow-top-right" 
-                size={20} 
-                color={tipoOperacion === 'egreso' ? '#C8005B' : '#A0AEC0'} 
+              <Icon
+                name="arrow-top-right"
+                size={20}
+                color={tipoOperacion === 'egreso' ? '#C8005B' : '#A0AEC0'}
               />
               <Text style={tipoOperacion === 'egreso' ? estilosRegistrar.textoTabEgresoActivo : estilosRegistrar.textoTabInactivo}>
                 Egreso
@@ -155,7 +155,7 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
             <Text style={estilosRegistrar.labelInput}>Monto</Text>
             <View style={estilosRegistrar.cajaInput}>
               <Text style={estilosRegistrar.simboloMoneda}>S/</Text>
-              <TextInput 
+              <TextInput
                 style={estilosRegistrar.inputPrincipal}
                 placeholder="0"
                 placeholderTextColor="#A0AEC0"
@@ -169,7 +169,7 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
 
           <View style={dropdownAbierto === 'cuentas' ? estilosRegistrar.grupoInputZIndexAlto : estilosRegistrar.grupoInput}>
             <Text style={estilosRegistrar.labelInput}>Desde tu cuenta</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[estilosRegistrar.cajaInput, dropdownAbierto === 'cuentas' && estilosRegistrar.cajaInputActiva]}
               onPress={() => toggleDropdown('cuentas')}
             >
@@ -180,8 +180,8 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
             {dropdownAbierto === 'cuentas' && (
               <View style={estilosRegistrar.dropdownContenedor}>
                 {cuentas.map((cuenta, index) => (
-                  <TouchableOpacity 
-                    key={index} 
+                  <TouchableOpacity
+                    key={index}
                     style={[estilosRegistrar.dropdownItem, cuentaSeleccionada === cuenta.id && estilosRegistrar.dropdownItemActivo]}
                     onPress={() => seleccionarCuenta(cuenta.id)}
                   >
@@ -197,7 +197,7 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
           <View style={estilosRegistrar.grupoInput}>
             <Text style={estilosRegistrar.labelInput}>Concepto</Text>
             <View style={estilosRegistrar.cajaInput}>
-              <TextInput 
+              <TextInput
                 style={estilosRegistrar.inputTexto}
                 placeholder="Ej. Mercado de la semana"
                 placeholderTextColor="#A0AEC0"
@@ -209,7 +209,7 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
 
           <View style={dropdownAbierto === 'categorias' ? estilosRegistrar.grupoInputZIndexAlto : estilosRegistrar.grupoInput}>
             <Text style={estilosRegistrar.labelInput}>Categoría</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[estilosRegistrar.cajaInput, dropdownAbierto === 'categorias' && estilosRegistrar.cajaInputActiva]}
               onPress={() => toggleDropdown('categorias')}
             >
@@ -220,8 +220,8 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
             {dropdownAbierto === 'categorias' && (
               <View style={estilosRegistrar.dropdownContenedor}>
                 {categorias.map((categoria, index) => (
-                  <TouchableOpacity 
-                    key={index} 
+                  <TouchableOpacity
+                    key={index}
                     style={[estilosRegistrar.dropdownItem, categoriaSeleccionada === categoria && estilosRegistrar.dropdownItemActivo]}
                     onPress={() => seleccionarCategoria(categoria)}
                   >
@@ -254,15 +254,20 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
       >
         <TouchableOpacity style={estilosRegistrar.modalFondo} activeOpacity={1} onPressOut={() => setModalUsuarioVisible(false)}>
           <TouchableOpacity activeOpacity={1} style={estilosRegistrar.modalContenedorUsuario}>
-            
+
             <View style={estilosRegistrar.lineaArrastre} />
 
             <View style={estilosRegistrar.avatarGrande}>
               <Text style={estilosRegistrar.textoAvatarGrande}>{iniciales}</Text>
             </View>
 
+<<<<<<< HEAD
             <Text style={estilosRegistrar.nombreUsuarioModal}>{nombre}</Text>
             
+=======
+            <Text style={estilosRegistrar.nombreUsuarioModal}>Carlos Flores Reyes</Text>
+
+>>>>>>> main
             <View style={estilosRegistrar.badgeVerificado}>
               <Icon name="check" size={14} color="#1E8E3E" />
               <Text style={estilosRegistrar.textoBadgeVerificado}>Cuenta verificada</Text>
@@ -294,24 +299,24 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
       >
         <View style={estilosRegistrar.modalFondoCentro}>
           <View style={estilosRegistrar.tarjetaMeta}>
-            
+
             <Text style={estilosRegistrar.tituloMeta}>¿Cuál será tu meta?</Text>
             <Text style={estilosRegistrar.subtituloMeta}>Define tu objetivo de ahorro para este mes y conéctalo con tu balance.</Text>
-            
+
             <View style={estilosRegistrar.inputMetaContainer}>
               <Text style={estilosRegistrar.textoMonedaMeta}>S/</Text>
-              <TextInput 
+              <TextInput
                 style={estilosRegistrar.inputMeta}
                 placeholder="0.00"
                 placeholderTextColor="#A0AEC0"
                 keyboardType="numeric"
-                autoFocus={true} 
+                autoFocus={true}
                 value={metaMes}
                 onChangeText={setMetaMes}
               />
             </View>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={estilosRegistrar.botonGuardarMeta}
               onPress={async () => {
                 setModalUsuarioVisible(false);
