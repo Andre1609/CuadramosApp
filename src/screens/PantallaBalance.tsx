@@ -9,9 +9,12 @@ import { formatoMonto, resumenMes } from '../utils/finanzas';
 import SelectorMes from '../components/SelectorMes';
 import IndicadorBalance from '../components/IndicadorBalance';
 import { claveMes, inicioMes } from '../utils/fechas';
+import { useAuth } from '../context/AuthContext';
+import { estilosRegistrar } from '../styles/estilosRegistrar';
 
 const PantallaBalance = () => {
   const { operaciones, cargando, error, recargar } = useFinanzas();
+  const { nombre, iniciales, usuario, cerrarSesion } = useAuth();
   const [mes, setMes] = useState(() => claveMes());
   const resumen = resumenMes(operaciones, inicioMes(mes));
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
@@ -37,7 +40,7 @@ const PantallaBalance = () => {
               style={estilosBalance.botonPerfilCabecera}
               onPress={() => setModalUsuarioVisible(true)}
             >
-              <Text style={estilosBalance.textoPerfilCabecera}>CF</Text>
+              <Text style={estilosBalance.textoPerfilCabecera}>{iniciales}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -135,39 +138,32 @@ const PantallaBalance = () => {
             <View style={estilosBalance.lineaArrastre} />
 
             <View style={estilosBalance.avatarGrande}>
-              <Text style={estilosBalance.textoAvatarGrande}>CF</Text>
+              <Text style={estilosBalance.textoAvatarGrande}>{iniciales}</Text>
             </View>
 
-            <Text style={estilosBalance.nombreUsuarioModal}>Carlos Flores Reyes</Text>
+            <Text style={estilosBalance.nombreUsuarioModal}>{nombre}</Text>
 
             <View style={estilosBalance.badgeVerificado}>
               <Icon name="check" size={14} color="#1E8E3E" />
               <Text style={estilosBalance.textoBadgeVerificado}>Cuenta verificada</Text>
             </View>
 
-            <View style={estilosBalance.filaDatoUsuario}>
-              <Text style={estilosBalance.etiquetaDato}>Nombres</Text>
-              <Text style={estilosBalance.valorDato}>Carlos</Text>
-            </View>
-
-            <View style={estilosBalance.filaDatoUsuario}>
-              <Text style={estilosBalance.etiquetaDato}>Apellidos</Text>
-              <Text style={estilosBalance.valorDato}>Flores Reyes</Text>
-            </View>
-
-            <View style={estilosBalance.filaDatoUsuario}>
-              <Text style={estilosBalance.etiquetaDato}>Celular</Text>
-              <Text style={estilosBalance.valorDato}>936 364 474</Text>
+            <View style={estilosRegistrar.filaDatoUsuario}>
+              <Text style={estilosRegistrar.etiquetaDato}>Usuario</Text>
+              <Text style={estilosRegistrar.valorDato}>{nombre}</Text>
             </View>
 
             <View style={estilosBalance.filaDatoUsuario}>
               <Text style={estilosBalance.etiquetaDato}>Cliente desde</Text>
-              <Text style={estilosBalance.valorDato}>Octubre 2026</Text>
+              <Text style={estilosBalance.valorDato}>{new Date(usuario?.created_at ?? Date.now()).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</Text>
             </View>
 
             <TouchableOpacity
               style={estilosBalance.botonCerrarSesion}
-              onPress={() => setModalUsuarioVisible(false)}
+              onPress={async () => {
+                setModalUsuarioVisible(false);
+                await cerrarSesion();
+              }}
             >
               <Text style={estilosBalance.textoBotonCerrarSesion}>Cerrar Sesión</Text>
             </TouchableOpacity>

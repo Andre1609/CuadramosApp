@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { NuevaOperacion, Operacion, cuentas, categoriasPorTipo } from '../types/finanzas';
+import { useAuth } from './AuthContext';
 import { cargarOperaciones, guardarOperaciones } from '../services/almacenamiento';
 import { cargarMeta, guardarMetaLocal } from '../services/almacenamiento';
 
@@ -33,20 +34,29 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
   const ocupado = useRef(false);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { usuario } = useAuth();
+  const usuarioId = usuario?.id ?? '';
 
-  async function recargar() {
+  const recargar = useCallback(async () => {
     setCargando(true);
     try {
+<<<<<<< HEAD
+      actuales.current = ordenar(await cargarOperaciones(usuarioId));
+      setOperaciones(actuales.current);
+=======
       const [registros, meta] = await Promise.all([cargarOperaciones(), cargarMeta()]);
       actuales.current = ordenar(registros);
       setMetaCentimos(meta ?? Math.max(0, registros.filter(op => op.cuentaId === 'metas').reduce((total, op) => total + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos), 0)));
       setOperaciones(actuales.current.filter(op => op.cuentaId !== 'metas'));
+>>>>>>> main
       setError(null);
     } catch {
       setError('No se pudieron cargar tus operaciones. Reintenta para continuar.');
     } finally { setCargando(false); }
-  }
-  useEffect(() => { void recargar(); }, []);
+  }, [usuarioId]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { void recargar(); }, [usuarioId]);
 
   async function registrar(datos: NuevaOperacion) {
     if (datos.cuentaId === 'metas') { throw new Error('Las metas son objetivos, no cuentas de dinero.'); }
@@ -62,7 +72,7 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
     try {
       const nueva: Operacion = { ...datos, concepto: datos.concepto.trim(), fecha: datos.fecha ?? new Date().toISOString(), id: `${Date.now()}-${Math.random().toString(36).slice(2)}` };
       const siguientes = ordenar([nueva, ...actuales.current]);
-      await guardarOperaciones(siguientes);
+      await guardarOperaciones(usuarioId,siguientes);
       actuales.current = ordenar(siguientes);
       setOperaciones(actuales.current.filter(op => op.cuentaId !== 'metas'));
     } finally { ocupado.current = false; }
@@ -84,7 +94,7 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
       const siguientes = datos
         ? actuales.current.map(op => op.id === id ? { ...op, ...datos, concepto: datos.concepto.trim(), id: op.id, fecha: datos.fecha ?? op.fecha } : op)
         : actuales.current.filter(op => op.id !== id);
-      await guardarOperaciones(siguientes);
+      await guardarOperaciones(usuarioId, siguientes);
       actuales.current = ordenar(siguientes);
       setOperaciones(actuales.current.filter(op => op.cuentaId !== 'metas'));
     } finally { ocupado.current = false; }

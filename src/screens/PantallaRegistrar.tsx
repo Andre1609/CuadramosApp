@@ -3,7 +3,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { PestanasPrincipales } from '../types/navegacion';
 import { View, Text, SafeAreaView, TouchableOpacity, TextInput, ScrollView, StatusBar, Modal, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { estilosRegistrar } from '../styles/estilosRegistrar.ts';
+import { estilosRegistrar } from '../styles/estilosRegistrar';
 
 import { cuentasFinancieras as cuentas, categoriasPorTipo, TipoOperacion } from '../types/finanzas';
 import { useFinanzas } from '../context/FinanzasContext';
@@ -11,6 +11,7 @@ import { montoACentimos } from '../utils/finanzas';
 
 import CampoFecha from '../components/CampoFecha';
 import { fechaTexto, fechaDesdeTexto } from '../utils/fechas';
+import { useAuth } from '../context/AuthContext';
 
 const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasPrincipales, 'Registrar'>) => {
   const [tipoOperacion, setTipoOperacion] = useState<TipoOperacion>('egreso');
@@ -31,12 +32,12 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
       setCuentaSeleccionada(cuentaRecibida);
       setDropdownAbierto(null);
     }
-    // Consumir el parámetro permite volver a abrir la misma cuenta y
-    // evita sobrescribir una selección manual al regresar a la pestaña.
+
     navigation.setParams({ cuentaId: undefined });
   }, [cuentaRecibida, navigation]);
 
   const { registrar, cargando, error, recargar } = useFinanzas();
+  const { nombre, iniciales, usuario, cerrarSesion } = useAuth();
   const [guardando, setGuardando] = useState(false);
   const categorias = categoriasPorTipo[tipoOperacion];
   const cambiarTipo = (tipo: TipoOperacion) => {
@@ -97,7 +98,7 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
               style={estilosRegistrar.botonPerfilCabecera}
               onPress={() => setModalUsuarioVisible(true)}
             >
-              <Text style={estilosRegistrar.textoPerfilCabecera}>CF</Text>
+              <Text style={estilosRegistrar.textoPerfilCabecera}>{iniciales}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -257,37 +258,32 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
             <View style={estilosRegistrar.lineaArrastre} />
 
             <View style={estilosRegistrar.avatarGrande}>
-              <Text style={estilosRegistrar.textoAvatarGrande}>CF</Text>
+              <Text style={estilosRegistrar.textoAvatarGrande}>{iniciales}</Text>
             </View>
 
+<<<<<<< HEAD
+            <Text style={estilosRegistrar.nombreUsuarioModal}>{nombre}</Text>
+            
+=======
             <Text style={estilosRegistrar.nombreUsuarioModal}>Carlos Flores Reyes</Text>
 
+>>>>>>> main
             <View style={estilosRegistrar.badgeVerificado}>
               <Icon name="check" size={14} color="#1E8E3E" />
               <Text style={estilosRegistrar.textoBadgeVerificado}>Cuenta verificada</Text>
             </View>
 
             <View style={estilosRegistrar.filaDatoUsuario}>
-              <Text style={estilosRegistrar.etiquetaDato}>Nombres</Text>
-              <Text style={estilosRegistrar.valorDato}>Carlos</Text>
-            </View>
-
-            <View style={estilosRegistrar.filaDatoUsuario}>
-              <Text style={estilosRegistrar.etiquetaDato}>Apellidos</Text>
-              <Text style={estilosRegistrar.valorDato}>Flores Reyes</Text>
-            </View>
-
-            <View style={estilosRegistrar.filaDatoUsuario}>
-              <Text style={estilosRegistrar.etiquetaDato}>Celular</Text>
-              <Text style={estilosRegistrar.valorDato}>936 364 474</Text>
+              <Text style={estilosRegistrar.etiquetaDato}>Usuario</Text>
+              <Text style={estilosRegistrar.valorDato}>{nombre}</Text>
             </View>
 
             <View style={estilosRegistrar.filaDatoUsuario}>
               <Text style={estilosRegistrar.etiquetaDato}>Cliente desde</Text>
-              <Text style={estilosRegistrar.valorDato}>Octubre 2026</Text>
+              <Text style={estilosRegistrar.valorDato}>{new Date(usuario?.created_at ?? Date.now()).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</Text>
             </View>
 
-            <TouchableOpacity style={estilosRegistrar.botonCerrarSesion} onPress={() => setModalUsuarioVisible(false)}>
+            <TouchableOpacity style={estilosRegistrar.botonCerrarSesion} onPress={cerrarSesion}>
               <Text style={estilosRegistrar.textoBotonCerrarSesion}>Cerrar Sesión</Text>
             </TouchableOpacity>
 
@@ -322,7 +318,10 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
 
             <TouchableOpacity
               style={estilosRegistrar.botonGuardarMeta}
-              onPress={() => setModalMetaVisible(false)}
+              onPress={async () => {
+                setModalUsuarioVisible(false);
+                await cerrarSesion();
+              }}
             >
               <Text style={estilosRegistrar.textoBotonMeta}>Guardar meta</Text>
             </TouchableOpacity>
