@@ -5,23 +5,36 @@ import { BlurView } from '@react-native-community/blur';
 import { estilos } from '../styles/estilosPrincipal';
 
 import { useAuth } from '../context/AuthContext';
-
 import { useFinanzas } from '../context/FinanzasContext';
 import { formatoMonto, movimientoVisual } from '../utils/finanzas';
 import { cuentas } from '../types/finanzas';
+import MetaAhorro from '../components/MetaAhorro'; 
 
 const PantallaPrincipal = ({ navigation }: any) => {
-  const { operaciones, cargando, error, recargar } = useFinanzas();
-  const misCuentasData = cuentas.map(cuenta => {
-    const movimientos = operaciones.filter(op => op.cuentaId === cuenta.id);
-    const centimos = movimientos.reduce((total, op) => total + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos), 0);
-    return { ...cuenta, tipo: cuenta.id === 'metas' ? 'Objetivo de ahorro · no es saldo' : 'Cuenta local', saldo: formatoMonto(cuenta.id === 'metas' ? metaCentimos : centimos), centimos, tieneMovimientos: movimientos.length > 0 };
-  });
-  const total = misCuentasData.filter(cuenta => cuenta.id !== 'metas').reduce((suma, cuenta) => suma + cuenta.centimos, 0);
+  const { usuario, cerrarSesion } = useAuth();
+  const { operaciones, cargando, error, recargar, metaCentimos } = useFinanzas();
+
+  const nombre = (usuario as any)?.user_metadata?.nombre || (usuario as any)?.nombre || (usuario as any)?.email?.split('@')[0] || 'Usuario';
+  const iniciales = nombre.slice(0, 2).toUpperCase();
   const [saldoOculto, setSaldoOculto] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [cuentaActiva, setCuentaActiva] = useState<any>(null);
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
+  const [metaVisible, setMetaVisible] = useState(false);
+
+  const misCuentasData = cuentas.map(cuenta => {
+    const movimientos = operaciones.filter(op => op.cuentaId === cuenta.id);
+    const centimos = movimientos.reduce((total, op) => total + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos), 0);
+    return { 
+      ...cuenta, 
+      tipo: cuenta.id === 'metas' ? 'Objetivo de ahorro · no es saldo' : 'Cuenta local', 
+      saldo: formatoMonto(cuenta.id === 'metas' ? metaCentimos : centimos), 
+      centimos, 
+      tieneMovimientos: movimientos.length > 0 
+    };
+  });
+
+  const total = misCuentasData.filter(cuenta => cuenta.id !== 'metas').reduce((suma, cuenta) => suma + cuenta.centimos, 0);
 
   const abrirDetalleCuenta = (cuenta: any) => {
     if (cuenta.id === 'metas') { setMetaVisible(true); return; }
@@ -221,7 +234,8 @@ const PantallaPrincipal = ({ navigation }: any) => {
           )}
         </BlurView>
       </Modal>
-          <Modal
+
+      <Modal
         animationType="slide"
         transparent={true}
         visible={modalUsuarioVisible}
@@ -244,26 +258,27 @@ const PantallaPrincipal = ({ navigation }: any) => {
             </View>
 
             <View style={estilos.filaDatoUsuario}>
-            <Text style={estilos.etiquetaDato}>Usuario</Text>
-            <Text style={estilos.valorDato}>{nombre}</Text>
+              <Text style={estilos.etiquetaDato}>Usuario</Text>
+              <Text style={estilos.valorDato}>{nombre}</Text>
             </View>
 
-            <View style={estilosBalance.filaDatoUsuario}>
-              <Text style={estilosBalance.etiquetaDato}>Cliente desde</Text>
-              <Text style={estilosBalance.valorDato}>{new Date(usuario?.created_at ?? Date.now()).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</Text>
+            <View style={estilos.filaDatoUsuario}>
+              <Text style={estilos.etiquetaDato}>Cliente desde</Text>
+              <Text style={estilos.valorDato}>{new Date(usuario?.created_at ?? Date.now()).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</Text>
             </View>
 
             <TouchableOpacity
-            style={estilos.botonCerrarSesion}
-            onPress={async () => {
-              setModalUsuarioVisible(false);
-              await cerrarSesion();
-            }}>
-            <Text style={estilos.textoBotonCerrarSesion}>Cerrar Sesión</Text>
-          </TouchableOpacity>
+              style={estilos.botonCerrarSesion}
+              onPress={async () => {
+                setModalUsuarioVisible(false);
+                await cerrarSesion();
+              }}>
+              <Text style={estilos.textoBotonCerrarSesion}>Cerrar Sesión</Text>
+            </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+
       {metaVisible && <MetaAhorro cerrar={() => setMetaVisible(false)} />}
     </SafeAreaView>
   );

@@ -40,15 +40,10 @@ export function FinanzasProvider({ children }: { children: React.ReactNode }) {
   const recargar = useCallback(async () => {
     setCargando(true);
     try {
-<<<<<<< HEAD
-      actuales.current = ordenar(await cargarOperaciones(usuarioId));
-      setOperaciones(actuales.current);
-=======
-      const [registros, meta] = await Promise.all([cargarOperaciones(), cargarMeta()]);
+      const [registros, meta] = await Promise.all([cargarOperaciones(usuarioId), cargarMeta()]);
       actuales.current = ordenar(registros);
       setMetaCentimos(meta ?? Math.max(0, registros.filter(op => op.cuentaId === 'metas').reduce((total, op) => total + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos), 0)));
       setOperaciones(actuales.current.filter(op => op.cuentaId !== 'metas'));
->>>>>>> main
       setError(null);
     } catch {
       setError('No se pudieron cargar tus operaciones. Reintenta para continuar.');

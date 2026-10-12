@@ -261,13 +261,8 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
               <Text style={estilosRegistrar.textoAvatarGrande}>{iniciales}</Text>
             </View>
 
-<<<<<<< HEAD
-            <Text style={estilosRegistrar.nombreUsuarioModal}>{nombre}</Text>
-            
-=======
             <Text style={estilosRegistrar.nombreUsuarioModal}>Carlos Flores Reyes</Text>
 
->>>>>>> main
             <View style={estilosRegistrar.badgeVerificado}>
               <Icon name="check" size={14} color="#1E8E3E" />
               <Text style={estilosRegistrar.textoBadgeVerificado}>Cuenta verificada</Text>
