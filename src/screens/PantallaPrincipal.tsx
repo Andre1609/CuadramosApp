@@ -3,6 +3,7 @@ import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Moda
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BlurView } from '@react-native-community/blur';
 import { estilos } from '../styles/estilosPrincipal';
+import AsistenteFlotante from '../components/AsistenteFlotante';
 
 
 import { useFinanzas } from '../context/FinanzasContext';
@@ -147,9 +148,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
 
       </ScrollView>
 
-      <TouchableOpacity style={estilos.botonChatbotFlotante}>
-        <Icon name="robot-outline" size={28} color="#C8005B" />
-      </TouchableOpacity>
+      <AsistenteFlotante estiloBoton={estilos.botonChatbotFlotante} />
 
       <Modal
         animationType="fade"

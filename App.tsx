@@ -13,6 +13,7 @@ import PantallaBalance from './src/screens/PantallaBalance.tsx';
 import { estilosNavegacion } from './src/styles/estilosNavegacion';
 
 import { FinanzasProvider } from './src/context/FinanzasContext';
+import { AsistenteProvider } from './src/context/AsistenteContext';
 import type { PestanasPrincipales } from './src/types/navegacion';
 
 const Stack = createStackNavigator();
@@ -58,17 +59,19 @@ const MisTabs = () => {
 
 const App = () => {
   return (
-    <FinanzasProvider>
-    <NavigationContainer>
-      <Stack.Navigator 
-        initialRouteName="Ingreso"
-        screenOptions={{ headerShown: false }}
-      >
-        <Stack.Screen name="Ingreso" component={PantallaIngreso} />
-        <Stack.Screen name="Principal" component={MisTabs} />
-      </Stack.Navigator>
-    </NavigationContainer>
-    </FinanzasProvider>
+    <AsistenteProvider>
+      <FinanzasProvider>
+        <NavigationContainer>
+          <Stack.Navigator
+            initialRouteName="Ingreso"
+            screenOptions={{ headerShown: false }}
+          >
+            <Stack.Screen name="Ingreso" component={PantallaIngreso} />
+            <Stack.Screen name="Principal" component={MisTabs} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </FinanzasProvider>
+    </AsistenteProvider>
   );
 };
 
