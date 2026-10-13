@@ -7,7 +7,7 @@ import { estilos } from '../styles/estilosPrincipal';
 import { useAuth } from '../context/AuthContext';
 import { useFinanzas } from '../context/FinanzasContext';
 import { formatoMonto, movimientoVisual } from '../utils/finanzas';
-import { cuentas } from '../types/finanzas';
+import { cuentas, cuentasFinancieras, Operacion } from '../types/finanzas';
 import MetaAhorro from '../components/MetaAhorro'; 
 
 const PantallaPrincipal = ({ navigation }: any) => {
@@ -22,9 +22,21 @@ const PantallaPrincipal = ({ navigation }: any) => {
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
   const [metaVisible, setMetaVisible] = useState(false);
 
+  const movimientosFinancieros = operaciones.filter(op =>
+    cuentasFinancieras.some(cuenta => cuenta.id === op.cuentaId),
+  );
+  const movimientosDeCuenta = (cuentaId: string): Operacion[] =>
+    cuentaId === 'principal'
+      ? movimientosFinancieros
+      : operaciones.filter(op => op.cuentaId === cuentaId);
+  const total = movimientosFinancieros.reduce(
+    (suma, op) => suma + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos),
+    0,
+  );
+
   const misCuentasData = cuentas.map(cuenta => {
-    const movimientos = operaciones.filter(op => op.cuentaId === cuenta.id);
-    const centimos = movimientos.reduce((total, op) => total + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos), 0);
+    const movimientos = movimientosDeCuenta(cuenta.id);
+    const centimos = movimientos.reduce((suma, op) => suma + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos), 0);
     return { 
       ...cuenta, 
       tipo: cuenta.id === 'metas' ? 'Objetivo de ahorro · no es saldo' : 'Cuenta local', 
@@ -34,7 +46,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
     };
   });
 
-  const total = misCuentasData.filter(cuenta => cuenta.id !== 'metas').reduce((suma, cuenta) => suma + cuenta.centimos, 0);
+  const movimientosCuentaActiva = cuentaActiva ? movimientosDeCuenta(cuentaActiva.id) : [];
 
   const abrirDetalleCuenta = (cuenta: any) => {
     if (cuenta.id === 'metas') { setMetaVisible(true); return; }
@@ -197,7 +209,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
                 <Text style={[estilos.modalTextoTabla, estilos.columnaMontoCuenta, estilos.montoMovimientoCuenta]}>Monto</Text>
               </View>
 
-              {!operaciones.some(op => op.cuentaId === cuentaActiva.id) ? (
+              {!movimientosCuentaActiva.length ? (
                 <View style={estilos.estadoVacioContenedor}>
                   <Icon name="history" size={40} color="#CBD5E0" />
                   <Text style={estilos.textoVacioTitulo}>Por aquí aún no hay movimientos</Text>
@@ -205,7 +217,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
                 </View>
               ) : (
                 <ScrollView style={estilos.listaMovimientosCuenta}>
-                  {operaciones.filter(op => op.cuentaId === cuentaActiva.id).map(movimientoVisual).map(mov => (
+                  {movimientosCuentaActiva.map(movimientoVisual).map(mov => (
                     <View key={mov.id} style={estilos.filaMovimientoCuenta}>
                       <View style={estilos.columnaMovimientoCuenta}>
                         <Text style={estilos.tituloMovimientoCuenta}>{mov.titulo}</Text>
