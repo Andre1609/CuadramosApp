@@ -11,7 +11,6 @@ export async function generarReportePdf(operaciones: Operacion[], mes: string) {
   const normal = await pdf.embedFont(StandardFonts.Helvetica);
   const negrita = await pdf.embedFont(StandardFonts.HelveticaBold);
   const caracteres = new Set(normal.getCharacterSet());
-  // Helvetica incluye tildes y ñ. Símbolos no disponibles se sustituyen,
 
   const limpiar = (texto: string) =>
     [...texto.normalize('NFC')]
