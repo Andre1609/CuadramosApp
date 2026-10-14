@@ -1,16 +1,19 @@
+// src/components/AsistenteFlotante.tsx
+
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Modal,
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NavigationProp } from '@react-navigation/native';
-import { BlurView } from '@react-native-community/blur';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFinanzas } from '../context/FinanzasContext';
 import { useAsistente } from '../context/AsistenteContext';
@@ -26,12 +29,18 @@ interface Props {
 
 export default function AsistenteFlotante({ estiloBoton }: Props) {
   const navigation = useNavigation<NavigationProp<PestanasPrincipales>>();
-  const { operaciones, cargando, error } = useFinanzas();
-  const { mensajes, paso, agregarMensajes, establecerPaso } = useAsistente();
+  const { operaciones, cargando, error, registrar, guardarMeta } = useFinanzas();
+  const { mensajes, paso, agregarMensajes, establecerPaso, cargandoIA, enviarMensajeUsuario } = useAsistente();
+  
   const [visible, setVisible] = useState(false);
+  const [textoInput, setTextoInput] = useState('');
+  
   const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null);
   const resumen = resumenMes(operaciones);
-  const preguntas = paso.tipo === 'inicio' ? [] : preguntasAsistente[paso.grupo];
+  
+  // CORRECCIÓN CRUCIAL: Añadido || [] para evitar que colapse si el grupo no existe
+  const preguntas = (paso.tipo === 'inicio' ? [] : preguntasAsistente[paso.grupo]) || [];
+  
   const opciones = paso.tipo === 'inicio'
     ? gruposAsistente
     : paso.tipo === 'grupo'
@@ -40,7 +49,7 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
 
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
-  }, [mensajes]);
+  }, [mensajes, cargandoIA]);
 
   const cerrar = () => {
     setVisible(false);
@@ -52,6 +61,51 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
   };
 
   const idMensaje = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  const enviarConsultaIA = async () => {
+    if (!textoInput.trim() || cargandoIA) return;
+
+    const mensajeUsuario = textoInput.trim();
+    setTextoInput('');
+
+    try {
+      const resultado = await enviarMensajeUsuario(mensajeUsuario);
+      
+      // 1. Si Gemini retornó la instrucción de registro de operación
+      if (resultado && resultado.accion && registrar) {
+        try {
+          const { monto, tipo, cuenta, categoria } = resultado.accion;
+          const categoriasValidasIngreso = ['Salario', 'Trabajo', 'Otros'];
+          const categoriaFinal = categoriasValidasIngreso.includes(categoria) ? categoria : 'Otros';
+
+          await registrar({
+            montoCentimos: Math.round(Number(monto) * 100),
+            tipo: tipo === 'ingreso' ? 'ingreso' : 'egreso',
+            cuentaId: cuenta === 'Cuenta Principal' ? 'principal' : 'diaria',
+            categoria: categoriaFinal,
+            concepto: `${categoria} (Registrado por Cuadri)`,
+            fecha: new Date().toISOString(),
+          });
+        } catch (err) {
+          console.error('Error al registrar movimiento con Cuadri:', err);
+        }
+      }
+
+      // 2. Si Gemini retornó la instrucción de actualización de meta
+      if (resultado?.metaAccion?.monto && guardarMeta) {
+        try {
+          const montoNum = Number(resultado.metaAccion.monto);
+          if (!isNaN(montoNum)) {
+            await guardarMeta(Math.round(montoNum * 100));
+          }
+        } catch (err) {
+          console.error('Error al actualizar la meta con Cuadri:', err);
+        }
+      }
+    } catch (errGeneral) {
+      console.error('Error procesando la consulta del asistente:', errGeneral);
+    }
+  };
 
   const elegirGrupo = (grupo: (typeof gruposAsistente)[number]) => {
     agregarMensajes([
@@ -140,19 +194,19 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
         visible={visible}
         onRequestClose={cerrar}
       >
-        <View style={estilosAsistente.fondo}>
-          <BlurView
-            style={estilosAsistente.desenfoque}
-            blurType="light"
-            blurAmount={5}
-            reducedTransparencyFallbackColor="#EEE9EC"
-          />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Cerrar asistente"
-            style={estilosAsistente.fondoTocable}
-            onPress={cerrar}
-          />
+       <View style={estilosAsistente.fondo}>
+        <View
+          style={[
+            estilosAsistente.desenfoque,
+            { backgroundColor: 'rgba(0, 0, 0, 0.4)' }
+          ]}
+        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Cerrar asistente"
+          style={estilosAsistente.fondoTocable}
+          onPress={cerrar}
+        />
           <View style={estilosAsistente.panel}>
             <View style={estilosAsistente.cabecera}>
               <View style={estilosAsistente.iconoCabecera}>
@@ -226,6 +280,17 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
                   </View>
                 )
               ))}
+
+              {cargandoIA && (
+                <View style={estilosAsistente.filaMensajeBot}>
+                  <View style={estilosAsistente.avatarMensaje}>
+                    <Icon name="robot-outline" size={18} color="#C8005B" />
+                  </View>
+                  <View style={estilosAsistente.mensajeAsistente}>
+                    <ActivityIndicator size="small" color="#C8005B" />
+                  </View>
+                </View>
+              )}
             </ScrollView>
 
             <View style={estilosAsistente.pie}>
@@ -255,6 +320,7 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
                   </TouchableOpacity>
                 ))}
               </View>
+
               {paso.tipo !== 'inicio' && (
                 <TouchableOpacity
                   accessibilityRole="button"
@@ -264,6 +330,30 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
                   <Text style={estilosAsistente.textoCambiarTema}>Cambiar de tema</Text>
                 </TouchableOpacity>
               )}
+
+              {/* Caja de texto para hablar con Gemini */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, borderTopWidth: 1, borderTopColor: '#E0E0E0', paddingTop: 8 }}>
+                <TextInput
+                  style={{ flex: 1, backgroundColor: '#F3F3F3', borderRadius: 20, paddingHorizontal: 15, paddingVertical: 8, color: '#333', fontSize: 14 }}
+                  placeholder="Pregunta o registra algo..."
+                  placeholderTextColor="#999"
+                  value={textoInput}
+                  onChangeText={setTextoInput}
+                  onSubmitEditing={enviarConsultaIA}
+                  autoCorrect={false}
+                  spellCheck={false}
+                  autoCapitalize="none"
+                  blurOnSubmit={false}
+                />
+                <TouchableOpacity 
+                  onPress={enviarConsultaIA} 
+                  disabled={cargandoIA}
+                  style={{ backgroundColor: '#C8005B', borderRadius: 20, width: 38, height: 38, justifyContent: 'center', alignItems: 'center', marginLeft: 8 }}
+                >
+                  <Icon name="send" size={18} color="#FFF" />
+                </TouchableOpacity>
+              </View>
+
             </View>
           </View>
         </View>

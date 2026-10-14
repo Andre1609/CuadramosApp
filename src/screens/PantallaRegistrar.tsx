@@ -3,12 +3,8 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { PestanasPrincipales } from '../types/navegacion';
 import { View, Text, SafeAreaView, TouchableOpacity, TextInput, ScrollView, StatusBar, Modal, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-<<<<<<< HEAD
-import { estilosRegistrar } from '../styles/estilosRegistrar.ts';
-import AsistenteFlotante from '../components/AsistenteFlotante';
-=======
 import { estilosRegistrar } from '../styles/estilosRegistrar';
->>>>>>> main
+import AsistenteFlotante from '../components/AsistenteFlotante';
 
 import { cuentasFinancieras as cuentas, categoriasPorTipo, TipoOperacion } from '../types/finanzas';
 import { useFinanzas } from '../context/FinanzasContext';

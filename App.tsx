@@ -38,19 +38,16 @@ const MisTabs = () => {
         component={PantallaPrincipal} 
         options={{ tabBarIcon: ({ color, size }) => <Icon name="view-grid-outline" size={size} color={color} /> }} 
       />
-      
       <Tab.Screen 
         name="Registrar" 
         component={PantallaRegistrar} 
         options={{ tabBarIcon: ({ color, size }) => <Icon name="plus" size={size + 6} color={color} /> }} 
       />
-      
       <Tab.Screen 
         name="Historial" 
         component={PantallaHistorial} 
         options={{ tabBarIcon: ({ color, size }) => <Icon name="history" size={size} color={color} /> }} 
       />
-      
       <Tab.Screen 
         name="Balance" 
         component={PantallaBalance} 
@@ -60,25 +57,13 @@ const MisTabs = () => {
   );
 };
 
-
 const ZonaPrivada = () => {
   const { usuario } = useAuth();
-  if (!usuario) { return null; }
   return (
     <AsistenteProvider>
-      <AuthProvider>
-        <FinanzasProvider key={usuario?.id}>
-          <NavigationContainer>
-            <Stack.Navigator
-              initialRouteName="Ingreso"
-              screenOptions={{ headerShown: false }}
-            >
-              <Stack.Screen name="Ingreso" component={PantallaIngreso} />
-              <Stack.Screen name="Principal" component={MisTabs} />
-            </Stack.Navigator>
-          </NavigationContainer>
-        </FinanzasProvider>
-      </AuthProvider>
+      <FinanzasProvider key={usuario?.id ?? 'invitado'}>
+        <MisTabs />
+      </FinanzasProvider>
     </AsistenteProvider>
   );
 };
@@ -98,7 +83,7 @@ const Navegador = () => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {usuario ? (
-          <Stack.Screen name="Principal" component={ZonaPrivada} />
+          <Stack.Screen name="ZonaPrivada" component={ZonaPrivada} />
         ) : (
           <>
             <Stack.Screen name="Ingreso" component={PantallaIngreso} />
@@ -110,10 +95,10 @@ const Navegador = () => {
   );
 };
 
-const App = () => (
-  <AuthProvider>
-    <Navegador />
-  </AuthProvider>
-);
-
-export default App;
+export default function App() {
+  return (
+    <AuthProvider>
+      <Navegador />
+    </AuthProvider>
+  );
+}
