@@ -77,3 +77,4 @@ yarn-error.log
 
 
 hs_err_pid*.log
+src/config/env.ts

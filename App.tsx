@@ -11,12 +11,13 @@ import PantallaBalance from './src/screens/PantallaBalance';
 
 import { estilosNavegacion } from './src/styles/estilosNavegacion';
 
+import { FinanzasProvider } from './src/context/FinanzasContext';
+import { AsistenteProvider } from './src/context/AsistenteContext';
 import { ActivityIndicator, View } from 'react-native';
 import PantallaCrearCuenta from './src/screens/PantallaCrearCuenta';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 import type { PestanasPrincipales } from './src/types/navegacion';
-import { FinanzasProvider } from './src/context/FinanzasContext';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator<PestanasPrincipales>();
@@ -37,19 +38,16 @@ const MisTabs = () => {
         component={PantallaPrincipal} 
         options={{ tabBarIcon: ({ color, size }) => <Icon name="view-grid-outline" size={size} color={color} /> }} 
       />
-      
       <Tab.Screen 
         name="Registrar" 
         component={PantallaRegistrar} 
         options={{ tabBarIcon: ({ color, size }) => <Icon name="plus" size={size + 6} color={color} /> }} 
       />
-      
       <Tab.Screen 
         name="Historial" 
         component={PantallaHistorial} 
         options={{ tabBarIcon: ({ color, size }) => <Icon name="history" size={size} color={color} /> }} 
       />
-      
       <Tab.Screen 
         name="Balance" 
         component={PantallaBalance} 
@@ -59,14 +57,14 @@ const MisTabs = () => {
   );
 };
 
-// Zona privada: las finanzas se cargan por usuario y se reinician si cambia la cuenta
 const ZonaPrivada = () => {
   const { usuario } = useAuth();
-  if (!usuario) { return null; }
   return (
-    <FinanzasProvider key={usuario?.id}>
-      <MisTabs />
-    </FinanzasProvider>
+    <AsistenteProvider>
+      <FinanzasProvider key={usuario?.id ?? 'invitado'}>
+        <MisTabs />
+      </FinanzasProvider>
+    </AsistenteProvider>
   );
 };
 
@@ -85,7 +83,7 @@ const Navegador = () => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {usuario ? (
-          <Stack.Screen name="Principal" component={ZonaPrivada} />
+          <Stack.Screen name="ZonaPrivada" component={ZonaPrivada} />
         ) : (
           <>
             <Stack.Screen name="Ingreso" component={PantallaIngreso} />
@@ -97,10 +95,10 @@ const Navegador = () => {
   );
 };
 
-const App = () => (
-  <AuthProvider>
-    <Navegador />
-  </AuthProvider>
-);
-
-export default App;
+export default function App() {
+  return (
+    <AuthProvider>
+      <Navegador />
+    </AuthProvider>
+  );
+}

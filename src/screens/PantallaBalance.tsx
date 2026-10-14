@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { estilosBalance } from '../styles/estilosBalance';
+import AsistenteFlotante from '../components/AsistenteFlotante';
 
 import { useFinanzas } from '../context/FinanzasContext';
 import { formatoMonto, resumenMes } from '../utils/finanzas';
@@ -118,9 +119,7 @@ const PantallaBalance = () => {
 
       </ScrollView>
 
-      <TouchableOpacity style={estilosBalance.botonChatbotFlotante}>
-        <Icon name="robot-outline" size={28} color="#C8005B" />
-      </TouchableOpacity>
+      <AsistenteFlotante estiloBoton={estilosBalance.botonChatbotFlotante} />
 
       <Modal
         animationType="slide"

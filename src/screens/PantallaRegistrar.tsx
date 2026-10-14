@@ -4,6 +4,7 @@ import type { PestanasPrincipales } from '../types/navegacion';
 import { View, Text, SafeAreaView, TouchableOpacity, TextInput, ScrollView, StatusBar, Modal, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { estilosRegistrar } from '../styles/estilosRegistrar';
+import AsistenteFlotante from '../components/AsistenteFlotante';
 
 import { cuentasFinancieras as cuentas, categoriasPorTipo, TipoOperacion } from '../types/finanzas';
 import { useFinanzas } from '../context/FinanzasContext';
@@ -243,9 +244,7 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
         </View>
       </ScrollView>
 
-      <TouchableOpacity style={estilosRegistrar.botonChatbotFlotante}>
-        <Icon name="robot-outline" size={28} color="#C8005B" />
-      </TouchableOpacity>
+      <AsistenteFlotante estiloBoton={estilosRegistrar.botonChatbotFlotante} />
       <Modal
         animationType="slide"
         transparent={true}

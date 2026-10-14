@@ -59,6 +59,23 @@ export function resumenMes(operaciones: Operacion[], fecha = new Date()) {
   };
 }
 
+export function categoriaConMasGastos(operaciones: Operacion[], fecha = new Date()) {
+  const totales = operaciones.reduce<Record<string, number>>((acumulados, operacion) => {
+    const dia = new Date(operacion.fecha);
+    if (
+      operacion.tipo === 'egreso' &&
+      dia.getMonth() === fecha.getMonth() &&
+      dia.getFullYear() === fecha.getFullYear()
+    ) {
+      acumulados[operacion.categoria] = (acumulados[operacion.categoria] ?? 0) + operacion.montoCentimos;
+    }
+    return acumulados;
+  }, {});
+  const [categoria, montoCentimos] = Object.entries(totales)
+    .sort(([, montoA], [, montoB]) => montoB - montoA)[0] ?? [];
+  return categoria ? { categoria, montoCentimos } : null;
+}
+
 export function movimientoVisual(op: Operacion) {
   const ingreso = op.tipo === 'ingreso';
   const fecha = new Date(op.fecha);

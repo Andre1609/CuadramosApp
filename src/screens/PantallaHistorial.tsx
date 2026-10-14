@@ -4,6 +4,7 @@ import { exportarReporte } from '../services/exportarReporte';
 import { etiquetaMes } from '../utils/fechas';
 import { View, Text, SafeAreaView, TouchableOpacity, TextInput, ScrollView, StatusBar, Modal } from 'react-native';import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { estilosHistorial } from '../styles/estilosHistorial';
+import AsistenteFlotante from '../components/AsistenteFlotante';
 import { estilosRegistrar } from '../styles/estilosRegistrar';
 
 import { useFinanzas } from '../context/FinanzasContext';
@@ -171,9 +172,7 @@ const PantallaHistorial = () => {
 
       </ScrollView>
 
-      <TouchableOpacity style={estilosHistorial.botonChatbotFlotante}>
-        <Icon name="robot-outline" size={28} color="#C8005B" />
-      </TouchableOpacity>
+      <AsistenteFlotante estiloBoton={estilosHistorial.botonChatbotFlotante} />
       <Modal
         animationType="slide"
         transparent={true}
