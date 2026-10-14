@@ -342,4 +342,110 @@ export const estilosHistorial = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  contenedorModoVista: {
+    flexDirection: 'row',
+    marginBottom: 18,
+    gap: 5,
+  },
+
+  botonModoVista: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 3,
+    borderRadius: 8,
+    backgroundColor: '#F8F9FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  botonModoVistaActivo: {
+    backgroundColor: '#FFF0F5',
+    borderColor: '#C8005B',
+    borderWidth: 1,
+  },
+
+  textoModoVista: {
+    fontSize: 12,
+    color: '#718096',
+    textAlign: 'center',
+  },
+
+  textoModoVistaActivo: {
+    color: '#C8005B',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  grupoContenedor: {
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDF2F7',
+  },
+
+  grupoCabecera: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+  },
+
+  grupoTexto: {
+    flex: 1,
+    marginRight: 10,
+  },
+
+  grupoTitulo: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#1A202C',
+  },
+
+  grupoSubtitulo: {
+    fontSize: 12,
+    color: '#718096',
+    marginTop: 4,
+  },
+
+  grupoDerecha: {
+    alignItems: 'flex-end',
+    flexShrink: 0,
+  },
+
+  grupoTotal: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  grupoDetalle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginLeft: 12,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+
+  grupoDetalleTexto: {
+    flex: 1,
+    marginRight: 10,
+  },
+
+  grupoDetalleTitulo: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1A202C',
+  },
+
+  grupoDetalleFecha: {
+    fontSize: 12,
+    color: '#718096',
+    marginTop: 3,
+  },
+
+  grupoDetalleMonto: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+
 });
