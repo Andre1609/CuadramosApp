@@ -389,3 +389,15 @@ Se modificó `src/services/generarReportePdf.ts`. Se mantiene el detalle de oper
 ## 20. Exportación visible únicamente en «Todos»
 
 En Historial, «Exportar reporte PDF» se muestra solo cuando está seleccionado «Todos». Al elegir «Ingresos» o «Egresos», el botón se oculta y vuelve a aparecer al regresar a «Todos». El PDF sigue incluyendo ambos tipos de operación del periodo seleccionado; no se genera un reporte específico por tipo. Cambio en `src/screens/PantallaHistorial.tsx`.
+
+## 21. Las metas son objetivos, no dinero disponible
+
+«Mis metas» dejó de funcionar como cuenta para registrar ingresos y egresos. Ahora abre un formulario para definir o reemplazar un objetivo de ahorro. Ese objetivo se guarda por separado y no se suma al saldo total, al balance, al historial financiero ni al PDF. Tampoco implica que ya se haya ahorrado ese importe; aún no se calcula avance mediante aportes.
+
+Inicio identifica la tarjeta como «Objetivo de ahorro · no es saldo» y agrupa las tarjetas bajo «Mis cuentas y metas». En los formularios de registro y edición solo se pueden elegir las dos cuentas financieras: «Mi cuenta principal» y «Del día a día». El contexto rechaza nuevas operaciones asociadas a metas.
+
+Compatibilidad: los antiguos registros con `cuentaId: 'metas'` se conservan en almacenamiento, pero se excluyen del estado financiero compartido. Si todavía no se guardó un objetivo independiente, su antiguo importe neto (como mínimo cero) se muestra como objetivo inicial. Guardar un objetivo lo reemplaza, no lo acumula. Los registros antiguos no se borran ni se reclasifican como ingresos reales. Esta regla sustituye las descripciones anteriores que trataban Mis metas como una tercera cuenta financiera.
+
+Archivos: `src/components/MetaAhorro.tsx` (formulario que reutiliza estilos existentes), `src/services/almacenamiento.ts` (clave independiente de objetivo), `src/context/FinanzasContext.tsx` (carga, guardado y separación), `src/types/finanzas.ts` (lista de cuentas financieras), Inicio, Registrar y EditarOperacion.
+
+TypeScript pasó. Para probar: definir una meta de S/ 5,000, comprobar que el saldo total y Balance no aumentan, cambiarla a S/ 6,000 y verificar que no se suman ambas cantidades. Reiniciar para comprobar persistencia. Un ingreso real de S/ 100 en la cuenta principal sí aumenta el saldo en S/ 100. No se modificó el login ni se agregaron dependencias.

@@ -3,9 +3,9 @@ import { TextInput, StyleSheet, TextInputProps } from 'react-native';
 const CampoTexto = (propiedades: TextInputProps) => {
   return (
     <TextInput
-      style={[estilos.entrada, propiedades.style]}
       placeholderTextColor="#888888"
       {...propiedades}
+      style={[estilos.entrada, propiedades.style]}
     />
   );
 };

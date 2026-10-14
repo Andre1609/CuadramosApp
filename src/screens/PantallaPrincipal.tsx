@@ -5,25 +5,52 @@ import { BlurView } from '@react-native-community/blur';
 import { estilos } from '../styles/estilosPrincipal';
 import AsistenteFlotante from '../components/AsistenteFlotante';
 
-
+import { useAuth } from '../context/AuthContext';
 import { useFinanzas } from '../context/FinanzasContext';
 import { formatoMonto, movimientoVisual } from '../utils/finanzas';
-import { cuentas } from '../types/finanzas';
+import { cuentas, cuentasFinancieras, Operacion } from '../types/finanzas';
+import MetaAhorro from '../components/MetaAhorro'; 
 
 const PantallaPrincipal = ({ navigation }: any) => {
-  const { operaciones, cargando, error, recargar } = useFinanzas();
-  const misCuentasData = cuentas.map(cuenta => {
-    const movimientos = operaciones.filter(op => op.cuentaId === cuenta.id);
-    const centimos = movimientos.reduce((total, op) => total + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos), 0);
-    return { ...cuenta, tipo: 'Cuenta local', saldo: formatoMonto(centimos), centimos, tieneMovimientos: movimientos.length > 0 };
-  });
-  const total = misCuentasData.reduce((suma, cuenta) => suma + cuenta.centimos, 0);
+  const { usuario, cerrarSesion } = useAuth();
+  const { operaciones, cargando, error, recargar, metaCentimos } = useFinanzas();
+
+  const nombre = (usuario as any)?.user_metadata?.nombre || (usuario as any)?.nombre || (usuario as any)?.email?.split('@')[0] || 'Usuario';
+  const iniciales = nombre.slice(0, 2).toUpperCase();
   const [saldoOculto, setSaldoOculto] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [cuentaActiva, setCuentaActiva] = useState<any>(null);
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
+  const [metaVisible, setMetaVisible] = useState(false);
+
+  const movimientosFinancieros = operaciones.filter(op =>
+    cuentasFinancieras.some(cuenta => cuenta.id === op.cuentaId),
+  );
+  const movimientosDeCuenta = (cuentaId: string): Operacion[] =>
+    cuentaId === 'principal'
+      ? movimientosFinancieros
+      : operaciones.filter(op => op.cuentaId === cuentaId);
+  const total = movimientosFinancieros.reduce(
+    (suma, op) => suma + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos),
+    0,
+  );
+
+  const misCuentasData = cuentas.map(cuenta => {
+    const movimientos = movimientosDeCuenta(cuenta.id);
+    const centimos = movimientos.reduce((suma, op) => suma + (op.tipo === 'ingreso' ? op.montoCentimos : -op.montoCentimos), 0);
+    return { 
+      ...cuenta, 
+      tipo: cuenta.id === 'metas' ? 'Objetivo de ahorro · no es saldo' : 'Cuenta local', 
+      saldo: formatoMonto(cuenta.id === 'metas' ? metaCentimos : centimos), 
+      centimos, 
+      tieneMovimientos: movimientos.length > 0 
+    };
+  });
+
+  const movimientosCuentaActiva = cuentaActiva ? movimientosDeCuenta(cuentaActiva.id) : [];
 
   const abrirDetalleCuenta = (cuenta: any) => {
+    if (cuenta.id === 'metas') { setMetaVisible(true); return; }
     setCuentaActiva(cuenta);
     setModalVisible(true);
   };
@@ -54,14 +81,14 @@ const PantallaPrincipal = ({ navigation }: any) => {
               style={estilos.botonPerfilCabecera}
               onPress={() => setModalUsuarioVisible(true)}
             >
-              <Text style={estilos.textoPerfilCabecera}>CF</Text>
+              <Text style={estilos.textoPerfilCabecera}>{iniciales}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         <View style={estilos.cabecera}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={estilos.saludo}>Hola, Carlos </Text>
+            <Text style={estilos.saludo}>Hola, {nombre} </Text>
             <Icon name="hand-wave" size={28} color="#FFB81C" />
           </View>
           <Text style={estilos.subtitulo}>Qué bueno verte. Vamos a poner tus finanzas en orden.</Text>
@@ -113,7 +140,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
 
         <View style={estilos.seccionCuentas}>
           <View style={estilos.encabezadoSeccion}>
-            <Text style={estilos.tituloSeccion}>Mis cuentas</Text>
+            <Text style={estilos.tituloSeccion}>Mis cuentas y metas</Text>
             <View style={estilos.badgeCuentas}>
               <Text style={estilos.textoBadge}>3</Text>
             </View>
@@ -181,7 +208,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
                 <Text style={[estilos.modalTextoTabla, estilos.columnaMontoCuenta, estilos.montoMovimientoCuenta]}>Monto</Text>
               </View>
 
-              {!operaciones.some(op => op.cuentaId === cuentaActiva.id) ? (
+              {!movimientosCuentaActiva.length ? (
                 <View style={estilos.estadoVacioContenedor}>
                   <Icon name="history" size={40} color="#CBD5E0" />
                   <Text style={estilos.textoVacioTitulo}>Por aquí aún no hay movimientos</Text>
@@ -189,7 +216,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
                 </View>
               ) : (
                 <ScrollView style={estilos.listaMovimientosCuenta}>
-                  {operaciones.filter(op => op.cuentaId === cuentaActiva.id).map(movimientoVisual).map(mov => (
+                  {movimientosCuentaActiva.map(movimientoVisual).map(mov => (
                     <View key={mov.id} style={estilos.filaMovimientoCuenta}>
                       <View style={estilos.columnaMovimientoCuenta}>
                         <Text style={estilos.tituloMovimientoCuenta}>{mov.titulo}</Text>
@@ -218,7 +245,8 @@ const PantallaPrincipal = ({ navigation }: any) => {
           )}
         </BlurView>
       </Modal>
-          <Modal
+
+      <Modal
         animationType="slide"
         transparent={true}
         visible={modalUsuarioVisible}
@@ -230,10 +258,10 @@ const PantallaPrincipal = ({ navigation }: any) => {
             <View style={estilos.lineaArrastre} />
 
             <View style={estilos.avatarGrande}>
-              <Text style={estilos.textoAvatarGrande}>CF</Text>
+              <Text style={estilos.textoAvatarGrande}>{iniciales}</Text>
             </View>
 
-            <Text style={estilos.nombreUsuarioModal}>Carlos Flores Reyes</Text>
+            <Text style={estilos.nombreUsuarioModal}>{nombre}</Text>
 
             <View style={estilos.badgeVerificado}>
               <Icon name="check" size={14} color="#1E8E3E" />
@@ -241,32 +269,28 @@ const PantallaPrincipal = ({ navigation }: any) => {
             </View>
 
             <View style={estilos.filaDatoUsuario}>
-              <Text style={estilos.etiquetaDato}>Nombres</Text>
-              <Text style={estilos.valorDato}>Carlos</Text>
-            </View>
-
-            <View style={estilos.filaDatoUsuario}>
-              <Text style={estilos.etiquetaDato}>Apellidos</Text>
-              <Text style={estilos.valorDato}>Flores Reyes</Text>
-            </View>
-
-            <View style={estilos.filaDatoUsuario}>
-              <Text style={estilos.etiquetaDato}>Celular</Text>
-              <Text style={estilos.valorDato}>936 364 474</Text>
+              <Text style={estilos.etiquetaDato}>Usuario</Text>
+              <Text style={estilos.valorDato}>{nombre}</Text>
             </View>
 
             <View style={estilos.filaDatoUsuario}>
               <Text style={estilos.etiquetaDato}>Cliente desde</Text>
-              <Text style={estilos.valorDato}>Octubre 2026</Text>
+              <Text style={estilos.valorDato}>{new Date(usuario?.created_at ?? Date.now()).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</Text>
             </View>
 
-            <TouchableOpacity style={estilos.botonCerrarSesion} onPress={() => setModalUsuarioVisible(false)}>
+            <TouchableOpacity
+              style={estilos.botonCerrarSesion}
+              onPress={async () => {
+                setModalUsuarioVisible(false);
+                await cerrarSesion();
+              }}>
               <Text style={estilos.textoBotonCerrarSesion}>Cerrar Sesión</Text>
             </TouchableOpacity>
-
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+
+      {metaVisible && <MetaAhorro cerrar={() => setMetaVisible(false)} />}
     </SafeAreaView>
   );
 };

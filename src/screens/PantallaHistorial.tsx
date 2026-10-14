@@ -14,9 +14,11 @@ import EditarOperacion from '../components/EditarOperacion';
 
 import SelectorMes from '../components/SelectorMes';
 import { claveMes } from '../utils/fechas';
+import { useAuth } from '../context/AuthContext';
 
 const PantallaHistorial = () => {
   const { operaciones, cargando, error, recargar } = useFinanzas();
+  const { nombre, iniciales, usuario, cerrarSesion } = useAuth();
   const [operacionId, setOperacionId] = useState<string | null>(null);
   const operacionSeleccionada = operaciones.find(op => op.id === operacionId);
   const [mes, setMes] = useState('');
@@ -74,7 +76,7 @@ const PantallaHistorial = () => {
               style={estilosRegistrar.botonPerfilCabecera}
               onPress={() => setModalUsuarioVisible(true)}
             >
-              <Text style={estilosRegistrar.textoPerfilCabecera}>CF</Text>
+              <Text style={estilosRegistrar.textoPerfilCabecera}>{iniciales}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -183,10 +185,10 @@ const PantallaHistorial = () => {
             <View style={estilosRegistrar.lineaArrastre} />
 
             <View style={estilosRegistrar.avatarGrande}>
-              <Text style={estilosRegistrar.textoAvatarGrande}>CF</Text>
+              <Text style={estilosRegistrar.textoAvatarGrande}>{iniciales}</Text>
             </View>
 
-            <Text style={estilosRegistrar.nombreUsuarioModal}>Carlos Flores Reyes</Text>
+            <Text style={estilosRegistrar.nombreUsuarioModal}>{nombre}</Text>
 
             <View style={estilosRegistrar.badgeVerificado}>
               <Icon name="check" size={14} color="#1E8E3E" />
@@ -194,26 +196,18 @@ const PantallaHistorial = () => {
             </View>
 
             <View style={estilosRegistrar.filaDatoUsuario}>
-              <Text style={estilosRegistrar.etiquetaDato}>Nombres</Text>
-              <Text style={estilosRegistrar.valorDato}>Carlos</Text>
-            </View>
-
-            <View style={estilosRegistrar.filaDatoUsuario}>
-              <Text style={estilosRegistrar.etiquetaDato}>Apellidos</Text>
-              <Text style={estilosRegistrar.valorDato}>Flores Reyes</Text>
-            </View>
-
-            <View style={estilosRegistrar.filaDatoUsuario}>
-              <Text style={estilosRegistrar.etiquetaDato}>Celular</Text>
-              <Text style={estilosRegistrar.valorDato}>936 364 474</Text>
+              <Text style={estilosRegistrar.etiquetaDato}>Usuario</Text>
+              <Text style={estilosRegistrar.valorDato}>{nombre}</Text>
             </View>
 
             <View style={estilosRegistrar.filaDatoUsuario}>
               <Text style={estilosRegistrar.etiquetaDato}>Cliente desde</Text>
-              <Text style={estilosRegistrar.valorDato}>Octubre 2026</Text>
+              <Text style={estilosRegistrar.valorDato}>{new Date(usuario?.created_at ?? Date.now()).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</Text>
             </View>
 
-            <TouchableOpacity style={estilosRegistrar.botonCerrarSesion} onPress={() => setModalUsuarioVisible(false)}>
+            <TouchableOpacity style={estilosRegistrar.botonCerrarSesion} onPress={async () => {
+                setModalUsuarioVisible(false);
+                await cerrarSesion();}}>
               <Text style={estilosRegistrar.textoBotonCerrarSesion}>Cerrar Sesión</Text>
             </TouchableOpacity>
 

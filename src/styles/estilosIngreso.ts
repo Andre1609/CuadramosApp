@@ -52,4 +52,17 @@ export const estilos = StyleSheet.create({
     fontWeight: 'bold',
     color: '#C8005B',
   },
+    textoError: {
+    color: '#D93025',
+    fontSize: 13,
+    marginTop: -8,
+    marginBottom: 12,
+  },
+  filaEnlace: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  textoEnlaceGris: { color: '#666666', fontSize: 15 },
+  textoEnlace: { color: '#C8005B', fontSize: 15, fontWeight: 'bold' },
 });

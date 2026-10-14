@@ -1,11 +1,30 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const CLAVE_META = '@cuadramos/meta/local/v1';
+export async function cargarMeta(): Promise<number | null> {
+  const valor = await AsyncStorage.getItem(CLAVE_META);
+  if (valor === null) {
+    return null;
+  }
+  const monto = Number(valor);
+  if (!Number.isSafeInteger(monto) || monto < 0) {
+    throw new Error('Meta guardada inválida.');
+  }
+  return monto;
+}
+export async function guardarMetaLocal(monto: number) {
+  await AsyncStorage.setItem(CLAVE_META, String(monto));
+}
 import { Operacion, cuentas, categoriasPorTipo } from '../types/finanzas';
 
-// Espacio local provisional. Al integrar el login, usar un espacio por usuario.
-const CLAVE = '@cuadramos/operaciones/local/v1';
+// espacio de almacenamiento distinto por cada usuario
+const claveUsuario = (usuarioId: string) =>
+  `@cuadramos/operaciones/${usuarioId}/v1`;
 
-export async function cargarOperaciones(): Promise<Operacion[]> {
-  const texto = await AsyncStorage.getItem(CLAVE);
+export async function cargarOperaciones(
+  usuarioId: string,
+): Promise<Operacion[]> {
+  const texto = await AsyncStorage.getItem(claveUsuario(usuarioId));
   if (!texto) {
     return [];
   }
@@ -35,7 +54,11 @@ export async function cargarOperaciones(): Promise<Operacion[]> {
 }
 
 export async function guardarOperaciones(
+  usuarioId: string,
   operaciones: Operacion[],
 ): Promise<void> {
-  await AsyncStorage.setItem(CLAVE, JSON.stringify(operaciones));
+  await AsyncStorage.setItem(
+    claveUsuario(usuarioId),
+    JSON.stringify(operaciones),
+  );
 }
