@@ -1,5 +1,6 @@
+import { Text, TextInput } from './atoms/Texto';
 import React from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { View } from 'react-native';
 import { estilosFechas as estilos } from '../styles/estilosFechas';
 
 export default function CampoFecha({ valor, cambiar, deshabilitado = false }: {

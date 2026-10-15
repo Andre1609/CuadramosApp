@@ -13,5 +13,5 @@ export function indicadorBalance(ingresos: number, egresos: number) {
   if (egresos >= ingresos * 0.8) {
     return { progreso, porcentaje, color: '#CA8A04', emoji: '😐', mensaje: 'Cerca de tu límite' };
   }
-  return { progreso, porcentaje, color: '#16A34A', emoji: '🙂', mensaje: 'Tienes margen' };
+  return { progreso, porcentaje, color: '#16A34A', emoji: '🙂', mensaje: 'Tienes un buen margen disponible' };
 }

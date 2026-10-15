@@ -1,4 +1,4 @@
-import { StyleSheet, Platform, StatusBar } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 export const estilosHistorial = StyleSheet.create({
   areaSegura: {
@@ -13,13 +13,14 @@ export const estilosHistorial = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop:
-      Platform.OS === 'android' ? (StatusBar.currentHeight || 20) + -18 : 1,
+    marginTop: 0,
     marginBottom: 15,
   },
   migasPan: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 1,
+    flexWrap: 'wrap',
   },
   textoMigaInactivo: {
     color: '#A0AEC0',
@@ -99,7 +100,8 @@ export const estilosHistorial = StyleSheet.create({
     fontWeight: 'bold',
   },
   filaBuscador: {
-    flexDirection: 'row',
+    flexDirection: 'column',
+    gap: 12,
     justifyContent: 'space-between',
     marginBottom: 20,
   },
@@ -111,7 +113,7 @@ export const estilosHistorial = StyleSheet.create({
     borderColor: '#EDF2F7',
     borderRadius: 8,
     paddingHorizontal: 10,
-    height: 45,
+    minHeight: 48,
     marginRight: 10,
   },
   inputBuscador: {
@@ -129,7 +131,7 @@ export const estilosHistorial = StyleSheet.create({
     borderColor: '#EDF2F7',
     borderRadius: 8,
     paddingHorizontal: 10,
-    height: 45,
+    minHeight: 48,
   },
   textoMes: {
     fontSize: 14,
@@ -204,7 +206,8 @@ export const estilosHistorial = StyleSheet.create({
     marginTop: 2,
   },
   pieTarjeta: {
-    flexDirection: 'row',
+    flexDirection: 'column',
+    gap: 12,
     justifyContent: 'space-between',
     marginTop: 20,
     paddingTop: 15,
@@ -243,13 +246,14 @@ export const estilosHistorial = StyleSheet.create({
     alignItems: 'center',
   },
   botonPerfilCabecera: {
-    width: 36,
-    height: 36,
+    minWidth: 36,
+    minHeight: 36,
     borderRadius: 18,
     backgroundColor: '#C8005B',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 15,
+    padding: 8,
   },
   textoPerfilCabecera: {
     color: '#FFFFFF',
@@ -277,14 +281,15 @@ export const estilosHistorial = StyleSheet.create({
     marginBottom: 20,
   },
   avatarGrande: {
-    width: 80,
-    height: 80,
+    minWidth: 80,
+    minHeight: 80,
     borderRadius: 40,
     backgroundColor: '#C8005B',
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
     marginBottom: 15,
+    padding: 8,
   },
   textoAvatarGrande: {
     fontSize: 28,
@@ -315,7 +320,8 @@ export const estilosHistorial = StyleSheet.create({
     marginLeft: 4,
   },
   filaDatoUsuario: {
-    flexDirection: 'row',
+    flexDirection: 'column',
+    gap: 8,
     justifyContent: 'space-between',
     paddingVertical: 15,
     borderBottomWidth: 1,

@@ -1,5 +1,7 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text } from '../components/atoms/Texto';
 import { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import CampoTexto from '../components/atoms/CampoTexto.tsx';
 import BotonAtomo from '../components/atoms/BotonAtomo.tsx';
 import React from 'react';

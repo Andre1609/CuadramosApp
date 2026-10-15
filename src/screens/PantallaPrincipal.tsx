@@ -1,5 +1,11 @@
+import AjustesNotificaciones from '../components/AjustesNotificaciones';
+import Modal from '../components/ModalSeguro';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AjustesTexto from '../components/AjustesTexto';
+import { useLecturaAmplia } from '../context/TextoContext';
+import { Text } from '../components/atoms/Texto';
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Modal } from 'react-native';
+import { View, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BlurView } from '@react-native-community/blur';
 import { estilos } from '../styles/estilosPrincipal';
@@ -12,6 +18,7 @@ import { cuentas, cuentasFinancieras, Operacion } from '../types/finanzas';
 import MetaAhorro from '../components/MetaAhorro'; 
 
 const PantallaPrincipal = ({ navigation }: any) => {
+  const lecturaAmplia = useLecturaAmplia();
   const { usuario, cerrarSesion } = useAuth();
   const { operaciones, cargando, error, recargar, metaCentimos } = useFinanzas();
 
@@ -62,7 +69,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={estilos.areaSegura}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={estilos.areaSegura}>
       <StatusBar barStyle="dark-content" />
 
       <ScrollView contentContainerStyle={estilos.contenedorScroll}>
@@ -73,9 +80,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
             <Text style={estilos.textoMigaActivo}>Inicio</Text>
           </View>
           <View style={estilos.contenedorIconosCabecera}>
-            <TouchableOpacity>
-              <Icon name="bell-outline" size={24} color="#C8005B" />
-            </TouchableOpacity>
+            <AjustesNotificaciones icono />
 
             <TouchableOpacity
               style={estilos.botonPerfilCabecera}
@@ -150,6 +155,8 @@ const PantallaPrincipal = ({ navigation }: any) => {
           {misCuentasData.map((cuenta) => (
             <TouchableOpacity
               key={cuenta.id}
+              disabled={cuenta.id === 'metas' && (cargando || !!error)}
+              accessibilityRole="button"
               style={estilos.tarjetaCuenta}
               onPress={() => abrirDetalleCuenta(cuenta)}
             >
@@ -157,17 +164,19 @@ const PantallaPrincipal = ({ navigation }: any) => {
                 <View style={[estilos.iconoCuentaContenedor, { backgroundColor: cuenta.colorFondo }]}>
                   <Icon name={cuenta.icono} size={24} color={cuenta.colorIcono} />
                 </View>
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={estilos.tituloCuenta}>{cuenta.nombre}</Text>
-                  <Text style={estilos.subtituloCuenta}>{cuenta.tipo}</Text>
+                  <Text style={estilos.subtituloCuenta}>{cuenta.id === 'metas' ? 'Define cuánto quieres ahorrar' : cuenta.tipo}</Text>
                 </View>
               </View>
 
               <View style={estilos.ladoDerechoCuenta}>
                 <Text style={estilos.saldoCuenta}>
-                  {saldoOculto ? '• • •' : `S/ ${cuenta.saldo}`}
+                  {cuenta.id === 'metas'
+                    ? metaCentimos ? `S/ ${cuenta.saldo}` : 'Crear mi meta'
+                    : saldoOculto ? '• • •' : `S/ ${cuenta.saldo}`}
                 </Text>
-                <Text style={estilos.monedaCuenta}>PEN</Text>
+                <Text style={estilos.monedaCuenta}>{cuenta.id === 'metas' ? metaCentimos ? 'Objetivo · toca para editar' : 'Toca para empezar' : 'PEN'}</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -191,6 +200,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
         >
           {cuentaActiva && (
             <View style={estilos.modalContenedor}>
+              <ScrollView>
 
               <View style={estilos.modalCabecera}>
                 <Text style={estilos.textoModalEtiqueta}>DETALLE DE TU CUENTA</Text>
@@ -202,11 +212,11 @@ const PantallaPrincipal = ({ navigation }: any) => {
               <Text style={estilos.modalTituloCuenta}>{cuentaActiva.nombre}</Text>
               <Text style={estilos.modalSaldoGrande}>S/ {misCuentasData.find(cuenta => cuenta.id === cuentaActiva.id)?.saldo}</Text>
 
-              <View style={estilos.modalEncabezadoTabla}>
+              {!lecturaAmplia && <View style={estilos.modalEncabezadoTabla}>
                 <Text style={[estilos.modalTextoTabla, estilos.columnaMovimientoCuenta]}>Movimiento</Text>
                 <Text style={[estilos.modalTextoTabla, estilos.columnaFechaCuenta, estilos.fechaMovimientoCuenta]}>Fecha</Text>
                 <Text style={[estilos.modalTextoTabla, estilos.columnaMontoCuenta, estilos.montoMovimientoCuenta]}>Monto</Text>
-              </View>
+              </View>}
 
               {!movimientosCuentaActiva.length ? (
                 <View style={estilos.estadoVacioContenedor}>
@@ -215,9 +225,9 @@ const PantallaPrincipal = ({ navigation }: any) => {
                   <Text style={estilos.textoVacioSubtitulo}>Registra tu primera operación y empieza a cuadrar.</Text>
                 </View>
               ) : (
-                <ScrollView style={estilos.listaMovimientosCuenta}>
+                <View style={estilos.listaMovimientosCuenta}>
                   {movimientosCuentaActiva.map(movimientoVisual).map(mov => (
-                    <View key={mov.id} style={estilos.filaMovimientoCuenta}>
+                    <View key={mov.id} style={[estilos.filaMovimientoCuenta, lecturaAmplia && { flexDirection: 'column', alignItems: 'stretch', gap: 10 }]}>
                       <View style={estilos.columnaMovimientoCuenta}>
                         <Text style={estilos.tituloMovimientoCuenta}>{mov.titulo}</Text>
                         <Text style={estilos.detalleMovimientoCuenta}>{mov.categoria}</Text>
@@ -227,12 +237,12 @@ const PantallaPrincipal = ({ navigation }: any) => {
                         <Text style={[estilos.detalleMovimientoCuenta, estilos.fechaMovimientoCuenta]}>{mov.fechaAnio}</Text>
                       </View>
                       <View style={estilos.columnaMontoCuenta}>
-                        <Text style={[estilos.montoMovimientoCuenta, { color: mov.colorMonto }]} numberOfLines={1} adjustsFontSizeToFit>{mov.monto}</Text>
+                        <Text style={[estilos.montoMovimientoCuenta, { color: mov.colorMonto }]}>{mov.monto}</Text>
                         <Text style={[estilos.detalleMovimientoCuenta, estilos.montoMovimientoCuenta]}>{mov.tipo}</Text>
                       </View>
                     </View>
                   ))}
-                </ScrollView>
+                </View>
               )}
 
               <View style={estilos.contenedorBotonFijo}>
@@ -241,6 +251,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
                 </TouchableOpacity>
               </View>
 
+              </ScrollView>
             </View>
           )}
         </BlurView>
@@ -252,8 +263,8 @@ const PantallaPrincipal = ({ navigation }: any) => {
         visible={modalUsuarioVisible}
         onRequestClose={() => setModalUsuarioVisible(false)}
       >
-        <TouchableOpacity style={estilos.modalFondoPerfil} activeOpacity={1} onPressOut={() => setModalUsuarioVisible(false)}>
-          <TouchableOpacity activeOpacity={1} style={estilos.modalContenedorUsuario}>
+        <TouchableOpacity style={estilos.modalFondoPerfil} activeOpacity={1} onPress={() => setModalUsuarioVisible(false)}>
+          <ScrollView style={{ maxHeight: '90%' }} contentContainerStyle={estilos.modalContenedorUsuario} keyboardShouldPersistTaps="handled">
 
             <View style={estilos.lineaArrastre} />
 
@@ -278,6 +289,8 @@ const PantallaPrincipal = ({ navigation }: any) => {
               <Text style={estilos.valorDato}>{new Date(usuario?.created_at ?? Date.now()).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</Text>
             </View>
 
+            <AjustesTexto />
+            <AjustesNotificaciones />
             <TouchableOpacity
               style={estilos.botonCerrarSesion}
               onPress={async () => {
@@ -286,7 +299,7 @@ const PantallaPrincipal = ({ navigation }: any) => {
               }}>
               <Text style={estilos.textoBotonCerrarSesion}>Cerrar Sesión</Text>
             </TouchableOpacity>
-          </TouchableOpacity>
+          </ScrollView>
         </TouchableOpacity>
       </Modal>
 

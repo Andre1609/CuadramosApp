@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Modal } from 'react-native';
+import AjustesNotificaciones from '../components/AjustesNotificaciones';
+import Modal from '../components/ModalSeguro';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AjustesTexto from '../components/AjustesTexto';
+import { Text } from '../components/atoms/Texto';
+import React, { useEffect, useState } from 'react';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { PestanasPrincipales } from '../types/navegacion';
+import { View, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { estilosBalance } from '../styles/estilosBalance';
 import AsistenteFlotante from '../components/AsistenteFlotante';
@@ -13,15 +20,16 @@ import { claveMes, inicioMes } from '../utils/fechas';
 import { useAuth } from '../context/AuthContext';
 import { estilosRegistrar } from '../styles/estilosRegistrar';
 
-const PantallaBalance = () => {
+const PantallaBalance = ({ route }: BottomTabScreenProps<PestanasPrincipales, 'Balance'>) => {
   const { operaciones, cargando, error, recargar } = useFinanzas();
   const { nombre, iniciales, usuario, cerrarSesion } = useAuth();
   const [mes, setMes] = useState(() => claveMes());
+  useEffect(() => { if (route.params?.mesActual) { setMes(claveMes()); } }, [route.params?.mesActual]);
   const resumen = resumenMes(operaciones, inicioMes(mes));
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
 
   return (
-    <SafeAreaView style={estilosBalance.areaSegura}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={estilosBalance.areaSegura}>
       <StatusBar barStyle="dark-content" />
 
       <ScrollView contentContainerStyle={estilosBalance.contenedorScroll} showsVerticalScrollIndicator={false}>
@@ -33,9 +41,7 @@ const PantallaBalance = () => {
           </View>
 
           <View style={estilosBalance.contenedorIconosCabecera}>
-            <TouchableOpacity>
-              <Icon name="bell-outline" size={24} color="#C8005B" />
-            </TouchableOpacity>
+            <AjustesNotificaciones icono />
 
             <TouchableOpacity
               style={estilosBalance.botonPerfilCabecera}
@@ -130,9 +136,9 @@ const PantallaBalance = () => {
         <TouchableOpacity
           style={estilosBalance.modalFondo}
           activeOpacity={1}
-          onPressOut={() => setModalUsuarioVisible(false)}
+          onPress={() => setModalUsuarioVisible(false)}
         >
-          <TouchableOpacity activeOpacity={1} style={estilosBalance.modalContenedorUsuario}>
+          <ScrollView style={{ maxHeight: '90%' }} contentContainerStyle={estilosBalance.modalContenedorUsuario} keyboardShouldPersistTaps="handled">
 
             <View style={estilosBalance.lineaArrastre} />
 
@@ -157,6 +163,8 @@ const PantallaBalance = () => {
               <Text style={estilosBalance.valorDato}>{new Date(usuario?.created_at ?? Date.now()).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</Text>
             </View>
 
+            <AjustesTexto />
+            <AjustesNotificaciones />
             <TouchableOpacity
               style={estilosBalance.botonCerrarSesion}
               onPress={async () => {
@@ -167,7 +175,7 @@ const PantallaBalance = () => {
               <Text style={estilosBalance.textoBotonCerrarSesion}>Cerrar Sesión</Text>
             </TouchableOpacity>
 
-          </TouchableOpacity>
+          </ScrollView>
         </TouchableOpacity>
       </Modal>
 

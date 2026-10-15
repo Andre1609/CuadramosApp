@@ -1,5 +1,6 @@
+import { Text } from './Texto';
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, TouchableOpacityProps } from 'react-native';
+import { TouchableOpacity, StyleSheet, TouchableOpacityProps } from 'react-native';
 
 interface PropiedadesBoton extends TouchableOpacityProps {
   texto: string;
@@ -27,7 +28,8 @@ const BotonAtomo = ({ texto, variante = 'amarillo', style, ...restoPropiedades }
 
 const estilos = StyleSheet.create({
   baseBoton: {
-    height: 55,
+    minHeight: 55,
+    paddingVertical: 14,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',

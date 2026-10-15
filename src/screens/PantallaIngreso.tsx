@@ -1,8 +1,8 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AjustesTexto from '../components/AjustesTexto';
+import { Text } from '../components/atoms/Texto';
 import React, { useState } from 'react';
-import {
-  View, Text, Image, TouchableOpacity, Alert, SafeAreaView,
-  KeyboardAvoidingView, Platform, ScrollView,
-} from 'react-native';
+import { View, Image, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import CampoTexto from '../components/atoms/CampoTexto';
 import CampoClave from '../components/atoms/CampoClave';
 import BotonAtomo from '../components/atoms/BotonAtomo';
@@ -77,6 +77,7 @@ const PantallaIngreso = ({ navigation }: any) => {
               </TouchableOpacity>
             </View>
           </View>
+        <AjustesTexto />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

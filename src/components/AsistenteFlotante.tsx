@@ -1,16 +1,9 @@
+import Modal from './ModalSeguro';
+import { Text, TextInput } from './atoms/Texto';
 // src/components/AsistenteFlotante.tsx
 
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
-} from 'react-native';
+import { Pressable, ScrollView, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NavigationProp } from '@react-navigation/native';
@@ -293,7 +286,7 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
               )}
             </ScrollView>
 
-            <View style={estilosAsistente.pie}>
+            <ScrollView style={estilosAsistente.pie} keyboardShouldPersistTaps="handled">
               <Text style={estilosAsistente.tituloPie}>Elige una opción</Text>
               <View style={estilosAsistente.opciones}>
                 {opciones.map(opcion => 'grupo' in opcion ? (
@@ -354,7 +347,7 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
                 </TouchableOpacity>
               </View>
 
-            </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>

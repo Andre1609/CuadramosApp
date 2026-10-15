@@ -1,8 +1,17 @@
-import React, { useRef, useState } from 'react';
+import AjustesNotificaciones from '../components/AjustesNotificaciones';
+import { ContenidoResumenSemanal } from '../components/AjustesNotificaciones';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { PestanasPrincipales } from '../types/navegacion';
+import Modal from '../components/ModalSeguro';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AjustesTexto from '../components/AjustesTexto';
+import { useLecturaAmplia } from '../context/TextoContext';
+import { Text, TextInput } from '../components/atoms/Texto';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { exportarReporte } from '../services/exportarReporte';
 import { etiquetaMes } from '../utils/fechas';
-import { View, Text, SafeAreaView, TouchableOpacity, TextInput, ScrollView, StatusBar, Modal } from 'react-native';import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { View, TouchableOpacity, ScrollView, StatusBar } from 'react-native';import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { estilosHistorial } from '../styles/estilosHistorial';
 import AsistenteFlotante from '../components/AsistenteFlotante';
 import { estilosRegistrar } from '../styles/estilosRegistrar';
@@ -16,7 +25,12 @@ import SelectorMes from '../components/SelectorMes';
 import { claveMes } from '../utils/fechas';
 import { useAuth } from '../context/AuthContext';
 
-const PantallaHistorial = () => {
+const PantallaHistorial = ({ route }: BottomTabScreenProps<PestanasPrincipales, 'Historial'>) => {
+  const scroll = useRef<React.ElementRef<typeof ScrollView>>(null);
+  useEffect(() => {
+    if (route.params?.resumenSemanal) { scroll.current?.scrollTo({ y: 0, animated: false }); }
+  }, [route.params?.resumenSemanal]);
+  const lecturaAmplia = useLecturaAmplia();
   const { operaciones, cargando, error, recargar } = useFinanzas();
   const { nombre, iniciales, usuario, cerrarSesion } = useAuth();
   const [operacionId, setOperacionId] = useState<string | null>(null);
@@ -57,10 +71,10 @@ const PantallaHistorial = () => {
   });
 
   return (
-    <SafeAreaView style={estilosHistorial.areaSegura}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={estilosHistorial.areaSegura}>
       <StatusBar barStyle="dark-content" />
 
-      <ScrollView contentContainerStyle={estilosHistorial.contenedorScroll}>
+      <ScrollView ref={scroll} contentContainerStyle={estilosHistorial.contenedorScroll}>
 
         <View style={estilosHistorial.encabezadoSuperior}>
           <View style={estilosHistorial.migasPan}>
@@ -68,9 +82,7 @@ const PantallaHistorial = () => {
             <Text style={estilosHistorial.textoMigaActivo}>Historial</Text>
           </View>
           <View style={estilosRegistrar.contenedorIconosCabecera}>
-            <TouchableOpacity>
-              <Icon name="bell-outline" size={24} color="#C8005B" />
-            </TouchableOpacity>
+            <AjustesNotificaciones icono />
 
             <TouchableOpacity
               style={estilosRegistrar.botonPerfilCabecera}
@@ -81,6 +93,7 @@ const PantallaHistorial = () => {
           </View>
         </View>
 
+        {!!route.params?.resumenSemanal && <ContenidoResumenSemanal />}
         <View style={estilosHistorial.cabeceraPantalla}>
           <Text style={estilosHistorial.tituloPantalla}>Tu dinero tiene historia.</Text>
           <Text style={estilosHistorial.subtituloPantalla}>Cada ingreso y cada gasto, claros y en un solo lugar.</Text>
@@ -128,17 +141,17 @@ const PantallaHistorial = () => {
             <SelectorMes valor={mes} cambiar={setMes} permitirTodos />
           </View>
 
-          <View style={estilosHistorial.encabezadoTabla}>
+          {!lecturaAmplia && <View style={estilosHistorial.encabezadoTabla}>
             <Text style={[estilosHistorial.textoEncabezado, { flex: 2 }]}>Movimiento</Text>
             <Text style={[estilosHistorial.textoEncabezado, { flex: 1, textAlign: 'center' }]}>Fecha</Text>
             <Text style={[estilosHistorial.textoEncabezado, { flex: 1.2, textAlign: 'right' }]}>Monto</Text>
-          </View>
+          </View>}
 
           {cargando && <Text>Cargando operaciones...</Text>}
           {error && <TouchableOpacity onPress={() => void recargar()}><Text>{error} Toca para reintentar.</Text></TouchableOpacity>}
           {!cargando && !error && !movimientosFiltrados.length && <Text>No hay movimientos para mostrar.</Text>}
           {movimientosFiltrados.map((mov) => (
-            <TouchableOpacity key={mov.id} style={estilosHistorial.filaMovimiento}
+            <TouchableOpacity key={mov.id} style={[estilosHistorial.filaMovimiento, lecturaAmplia && { flexDirection: 'column', alignItems: 'stretch', gap: 10 }]}
               accessibilityRole="button" accessibilityLabel={`Editar ${mov.titulo}`}
               disabled={cargando || !!error} onPress={() => setOperacionId(mov.id)}>
               <View style={estilosHistorial.ladoIzquierdo}>
@@ -146,7 +159,7 @@ const PantallaHistorial = () => {
                   <Icon name={mov.icono} size={20} color={mov.colorIcono} />
                 </View>
                 <View style={estilosHistorial.textosIzquierda}>
-                  <Text style={estilosHistorial.tituloMovimiento} numberOfLines={1}>{mov.titulo}</Text>
+                  <Text style={estilosHistorial.tituloMovimiento}>{mov.titulo}</Text>
                   <Text style={estilosHistorial.categoriaMovimiento}>{mov.categoria}</Text>
                 </View>
               </View>
@@ -179,8 +192,8 @@ const PantallaHistorial = () => {
         visible={modalUsuarioVisible}
         onRequestClose={() => setModalUsuarioVisible(false)}
       >
-        <TouchableOpacity style={estilosRegistrar.modalFondo} activeOpacity={1} onPressOut={() => setModalUsuarioVisible(false)}>
-          <TouchableOpacity activeOpacity={1} style={estilosRegistrar.modalContenedorUsuario}>
+        <TouchableOpacity style={estilosRegistrar.modalFondo} activeOpacity={1} onPress={() => setModalUsuarioVisible(false)}>
+          <ScrollView style={{ maxHeight: '90%' }} contentContainerStyle={estilosRegistrar.modalContenedorUsuario} keyboardShouldPersistTaps="handled">
 
             <View style={estilosRegistrar.lineaArrastre} />
 
@@ -205,13 +218,15 @@ const PantallaHistorial = () => {
               <Text style={estilosRegistrar.valorDato}>{new Date(usuario?.created_at ?? Date.now()).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</Text>
             </View>
 
+            <AjustesTexto />
+            <AjustesNotificaciones />
             <TouchableOpacity style={estilosRegistrar.botonCerrarSesion} onPress={async () => {
                 setModalUsuarioVisible(false);
                 await cerrarSesion();}}>
               <Text style={estilosRegistrar.textoBotonCerrarSesion}>Cerrar Sesión</Text>
             </TouchableOpacity>
 
-          </TouchableOpacity>
+          </ScrollView>
         </TouchableOpacity>
       </Modal>
       {operacionSeleccionada && <EditarOperacion key={operacionSeleccionada.id} operacion={operacionSeleccionada} cerrar={() => setOperacionId(null)} />}

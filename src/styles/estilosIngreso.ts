@@ -60,6 +60,7 @@ export const estilos = StyleSheet.create({
   },
   filaEnlace: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'center',
     marginTop: 20,
   },

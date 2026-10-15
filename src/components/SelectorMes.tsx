@@ -1,5 +1,8 @@
+import Modal from './ModalSeguro';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text } from './atoms/Texto';
 import React, { useState } from 'react';
-import { Modal, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { etiquetaMes, inicioMes, meses } from '../utils/fechas';
 import { estilosFechas as estilos } from '../styles/estilosFechas';
 

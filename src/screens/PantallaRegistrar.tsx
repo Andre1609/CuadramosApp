@@ -1,7 +1,12 @@
+import AjustesNotificaciones from '../components/AjustesNotificaciones';
+import Modal from '../components/ModalSeguro';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AjustesTexto from '../components/AjustesTexto';
+import { Text, TextInput } from '../components/atoms/Texto';
 import React, { useEffect, useState } from 'react';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { PestanasPrincipales } from '../types/navegacion';
-import { View, Text, SafeAreaView, TouchableOpacity, TextInput, ScrollView, StatusBar, Modal, Alert } from 'react-native';
+import { View, TouchableOpacity, ScrollView, StatusBar, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { estilosRegistrar } from '../styles/estilosRegistrar';
 import AsistenteFlotante from '../components/AsistenteFlotante';
@@ -23,8 +28,6 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Otros');
   const [dropdownAbierto, setDropdownAbierto] = useState<string | null>(null);
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
-  const [modalMetaVisible, setModalMetaVisible] = useState(false);
-  const [metaMes, setMetaMes] = useState('');
 
   const cuentaRecibida = route.params?.cuentaId;
   useEffect(() => {
@@ -81,7 +84,7 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
   };
 
   return (
-    <SafeAreaView style={estilosRegistrar.areaSegura}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={estilosRegistrar.areaSegura}>
       <StatusBar barStyle="dark-content" />
 
       <ScrollView contentContainerStyle={estilosRegistrar.contenedorScroll} keyboardShouldPersistTaps="handled">
@@ -91,9 +94,7 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
             <Text style={estilosRegistrar.textoMigaActivo}>Registrar</Text>
           </View>
           <View style={estilosRegistrar.contenedorIconosCabecera}>
-            <TouchableOpacity>
-              <Icon name="bell-outline" size={24} color="#C8005B" />
-            </TouchableOpacity>
+            <AjustesNotificaciones icono />
 
             <TouchableOpacity
               style={estilosRegistrar.botonPerfilCabecera}
@@ -251,8 +252,8 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
         visible={modalUsuarioVisible}
         onRequestClose={() => setModalUsuarioVisible(false)}
       >
-        <TouchableOpacity style={estilosRegistrar.modalFondo} activeOpacity={1} onPressOut={() => setModalUsuarioVisible(false)}>
-          <TouchableOpacity activeOpacity={1} style={estilosRegistrar.modalContenedorUsuario}>
+        <TouchableOpacity style={estilosRegistrar.modalFondo} activeOpacity={1} onPress={() => setModalUsuarioVisible(false)}>
+          <ScrollView style={{ maxHeight: '90%' }} contentContainerStyle={estilosRegistrar.modalContenedorUsuario} keyboardShouldPersistTaps="handled">
 
             <View style={estilosRegistrar.lineaArrastre} />
 
@@ -277,52 +278,16 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
               <Text style={estilosRegistrar.valorDato}>{new Date(usuario?.created_at ?? Date.now()).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</Text>
             </View>
 
+            <AjustesTexto />
+            <AjustesNotificaciones />
             <TouchableOpacity style={estilosRegistrar.botonCerrarSesion} onPress={cerrarSesion}>
               <Text style={estilosRegistrar.textoBotonCerrarSesion}>Cerrar Sesión</Text>
             </TouchableOpacity>
 
-          </TouchableOpacity>
+          </ScrollView>
         </TouchableOpacity>
       </Modal>
 
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={modalMetaVisible}
-        onRequestClose={() => setModalMetaVisible(false)}
-      >
-        <View style={estilosRegistrar.modalFondoCentro}>
-          <View style={estilosRegistrar.tarjetaMeta}>
-
-            <Text style={estilosRegistrar.tituloMeta}>¿Cuál será tu meta?</Text>
-            <Text style={estilosRegistrar.subtituloMeta}>Define tu objetivo de ahorro para este mes y conéctalo con tu balance.</Text>
-
-            <View style={estilosRegistrar.inputMetaContainer}>
-              <Text style={estilosRegistrar.textoMonedaMeta}>S/</Text>
-              <TextInput
-                style={estilosRegistrar.inputMeta}
-                placeholder="0.00"
-                placeholderTextColor="#A0AEC0"
-                keyboardType="numeric"
-                autoFocus={true}
-                value={metaMes}
-                onChangeText={setMetaMes}
-              />
-            </View>
-
-            <TouchableOpacity
-              style={estilosRegistrar.botonGuardarMeta}
-              onPress={async () => {
-                setModalUsuarioVisible(false);
-                await cerrarSesion();
-              }}
-            >
-              <Text style={estilosRegistrar.textoBotonMeta}>Guardar meta</Text>
-            </TouchableOpacity>
-
-          </View>
-        </View>
-      </Modal>
 
     </SafeAreaView>
   );

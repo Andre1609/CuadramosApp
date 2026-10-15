@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { AppState } from 'react-native';
 import { sesionPausada } from '../services/seguridadSesion';
 import { registrarCuenta, verificarCuenta, Cuenta } from '../services/cuentas';
+import { cambiarCuentaNotificaciones } from '../services/notificaciones';
 
 interface Usuario {
   id: string;
@@ -32,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
 
   const cerrarSesion = useCallback(async () => {
+    await cambiarCuentaNotificaciones(null);
     setUsuario(null);
   }, []);
 
@@ -53,10 +55,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       iniciales: nombre.slice(0, 2).toUpperCase(),
       cargando: false,
       iniciarSesion: async (u, clave) => {
-        setUsuario(aUsuario(await verificarCuenta(u, clave)));
+        const cuenta = await verificarCuenta(u, clave);
+        await cambiarCuentaNotificaciones(cuenta.id);
+        setUsuario(aUsuario(cuenta));
       },
       crearCuenta: async (u, clave) => {
-        setUsuario(aUsuario(await registrarCuenta(u, clave)));
+        const cuenta = await registrarCuenta(u, clave);
+        await cambiarCuentaNotificaciones(cuenta.id);
+        setUsuario(aUsuario(cuenta));
       },
       cerrarSesion,
     };

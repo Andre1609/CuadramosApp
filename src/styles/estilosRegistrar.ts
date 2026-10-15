@@ -1,4 +1,4 @@
-import { StyleSheet, Platform, StatusBar } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 export const estilosRegistrar = StyleSheet.create({
   areaSegura: {
@@ -13,13 +13,14 @@ export const estilosRegistrar = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop:
-      Platform.OS === 'android' ? (StatusBar.currentHeight || 20) + -18 : 1,
+    marginTop: 0,
     marginBottom: 15,
   },
   migasPan: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 1,
+    flexWrap: 'wrap',
   },
   textoMigaInactivo: {
     color: '#A0AEC0',
@@ -136,7 +137,8 @@ export const estilosRegistrar = StyleSheet.create({
     borderColor: '#EDF2F7',
     borderRadius: 12,
     paddingHorizontal: 15,
-    height: 55,
+    minHeight: 55,
+    paddingVertical: 10,
     backgroundColor: '#FFFFFF',
   },
   cajaInputActiva: {
@@ -167,7 +169,8 @@ export const estilosRegistrar = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    height: 55,
+    minHeight: 55,
+    paddingVertical: 10,
     marginTop: 20,
   },
   textoBotonGuardar: {
@@ -177,10 +180,7 @@ export const estilosRegistrar = StyleSheet.create({
     marginLeft: 8,
   },
   dropdownContenedor: {
-    position: 'absolute',
-    top: 80,
-    left: 0,
-    right: 0,
+    marginTop: 8,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#EDF2F7',
@@ -231,13 +231,14 @@ export const estilosRegistrar = StyleSheet.create({
     alignItems: 'center',
   },
   botonPerfilCabecera: {
-    width: 36,
-    height: 36,
+    minWidth: 36,
+    minHeight: 36,
     borderRadius: 18,
     backgroundColor: '#C8005B',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 15,
+    padding: 8,
   },
   textoPerfilCabecera: {
     color: '#FFFFFF',
@@ -265,14 +266,15 @@ export const estilosRegistrar = StyleSheet.create({
     marginBottom: 20,
   },
   avatarGrande: {
-    width: 80,
-    height: 80,
+    minWidth: 80,
+    minHeight: 80,
     borderRadius: 40,
     backgroundColor: '#C8005B',
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
     marginBottom: 15,
+    padding: 8,
   },
   textoAvatarGrande: {
     fontSize: 28,
@@ -303,7 +305,8 @@ export const estilosRegistrar = StyleSheet.create({
     marginLeft: 4,
   },
   filaDatoUsuario: {
-    flexDirection: 'row',
+    flexDirection: 'column',
+    gap: 8,
     justifyContent: 'space-between',
     paddingVertical: 15,
     borderBottomWidth: 1,
@@ -369,7 +372,8 @@ export const estilosRegistrar = StyleSheet.create({
     borderColor: '#EDF2F7',
     borderRadius: 12,
     paddingHorizontal: 15,
-    height: 55,
+    minHeight: 55,
+    paddingVertical: 10,
     width: '100%',
     marginBottom: 20,
     backgroundColor: '#F8F9FA',
@@ -390,7 +394,8 @@ export const estilosRegistrar = StyleSheet.create({
     backgroundColor: '#C8005B',
     borderRadius: 12,
     width: '100%',
-    height: 55,
+    minHeight: 55,
+    paddingVertical: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },

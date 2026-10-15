@@ -195,6 +195,8 @@ export const estilosAsistente = StyleSheet.create({
     fontWeight: '700',
   },
   pie: {
+    flexGrow: 0,
+    maxHeight: '50%',
     borderTopWidth: 1,
     borderTopColor: '#F0E8ED',
     backgroundColor: '#FFFFFF',

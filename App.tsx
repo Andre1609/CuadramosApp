@@ -1,4 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import notifee, { EventType } from '@notifee/react-native';
+import { recordarDestino } from './src/services/notificaciones';
+import { NotificacionesProvider } from './src/context/NotificacionesContext';
+import DestinoNotificacion from './src/components/DestinoNotificacion';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -18,19 +22,28 @@ import PantallaCrearCuenta from './src/screens/PantallaCrearCuenta';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 import type { PestanasPrincipales } from './src/types/navegacion';
+import { TextoProvider, useTexto } from './src/context/TextoContext';
+import { useWindowDimensions } from 'react-native';
+import { Text } from './src/components/atoms/Texto';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator<PestanasPrincipales>();
 
 const MisTabs = () => {
+  const { factor } = useTexto();
+  const { fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false, 
         tabBarActiveTintColor: '#C8005B', 
         tabBarInactiveTintColor: '#666666',
-        tabBarStyle: estilosNavegacion.barra,
-        tabBarLabelStyle: estilosNavegacion.textoPestaña,
+        tabBarStyle: [estilosNavegacion.barra, { height: 48 + 40 * factor * fontScale + insets.bottom, paddingBottom: 10 + insets.bottom }],
+        tabBarLabel: ({ children, color }) => <Text style={{ color, fontWeight: 'bold', textAlign: 'center' }}>{children}</Text>,
+        tabBarLabelStyle: [estilosNavegacion.textoPestaña, { fontSize: 14 * factor }],
+        tabBarLabelPosition: 'below-icon',
       }}
     >
       <Tab.Screen 
@@ -59,10 +72,14 @@ const MisTabs = () => {
 
 const ZonaPrivada = () => {
   const { usuario } = useAuth();
+  if (!usuario) { return null; }
   return (
     <AsistenteProvider>
       <FinanzasProvider key={usuario?.id ?? 'invitado'}>
-        <MisTabs />
+        <NotificacionesProvider>
+          <MisTabs />
+          <DestinoNotificacion />
+        </NotificacionesProvider>
       </FinanzasProvider>
     </AsistenteProvider>
   );
@@ -96,9 +113,17 @@ const Navegador = () => {
 };
 
 export default function App() {
+  useEffect(() => {
+    notifee.getInitialNotification().then(inicial => {
+      if (inicial) { return recordarDestino(inicial.notification); }
+    }).catch(() => undefined);
+    return notifee.onForegroundEvent(({ type, detail }) => {
+      if (type === EventType.PRESS) { recordarDestino(detail.notification).catch(() => undefined); }
+    });
+  }, []);
   return (
-    <AuthProvider>
+    <SafeAreaProvider><TextoProvider><AuthProvider>
       <Navegador />
-    </AuthProvider>
+    </AuthProvider></TextoProvider></SafeAreaProvider>
   );
 }

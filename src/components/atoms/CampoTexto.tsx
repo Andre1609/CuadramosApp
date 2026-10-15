@@ -1,4 +1,5 @@
-import { TextInput, StyleSheet, TextInputProps } from 'react-native';
+import { TextInput } from './Texto';
+import { StyleSheet, TextInputProps } from 'react-native';
 
 const CampoTexto = (propiedades: TextInputProps) => {
   return (
@@ -12,7 +13,8 @@ const CampoTexto = (propiedades: TextInputProps) => {
 
 const estilos = StyleSheet.create({
   entrada: {
-    height: 50,
+    minHeight: 50,
+    paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#CCCCCC',

@@ -1,5 +1,8 @@
+import Modal from './ModalSeguro';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text, TextInput } from './atoms/Texto';
 import React, { useRef, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Modal, Platform, SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Operacion, TipoOperacion, categoriasPorTipo, cuentasFinancieras as cuentas } from '../types/finanzas';
 import { useFinanzas } from '../context/FinanzasContext';
 import { montoACentimos } from '../utils/finanzas';

@@ -1,9 +1,14 @@
+import { Text } from './atoms/Texto';
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { estilosIndicadorBalance as estilos } from '../styles/estilosIndicadorBalance';
+import { indicadorBalance } from '../utils/indicadorBalance';
+import { useLecturaAmplia } from '../context/TextoContext';
 
 export default function IndicadorBalance({ ingresos, egresos }: { ingresos: number; egresos: number }) {
+  const lecturaAmplia = useLecturaAmplia();
   const vacio = ingresos === 0 && egresos === 0;
+  const estado = indicadorBalance(ingresos, egresos);
   const neto = ingresos - egresos;
   const deficit = neto < 0;
   const fraccionGastada = ingresos > 0 ? Math.min(1, egresos / ingresos) : 0;
@@ -25,11 +30,11 @@ export default function IndicadorBalance({ ingresos, egresos }: { ingresos: numb
           }]} />;
         })}
         <View style={estilos.centro}>
-          <Text style={estilos.etiqueta}>{titulo}</Text>
-          {porcentaje !== null && <Text style={[estilos.porcentaje, deficit && estilos.deficit]} adjustsFontSizeToFit numberOfLines={1}>{porcentaje}</Text>}
-          {porcentaje !== null && <Text style={estilos.etiqueta}>de tus ingresos</Text>}
+          <Text allowFontScaling={false} style={estilos.emoji}>{vacio ? '😴' : estado.emoji}</Text>
+          {!lecturaAmplia && <Text style={estilos.etiqueta}>{estado.mensaje}</Text>}
         </View>
       </View>
+      {lecturaAmplia && <Text style={estilos.etiqueta}>{estado.mensaje}</Text>}
       {vacio ? <Text style={estilos.nota}>Registra un ingreso o gasto para ver tu resumen.</Text> : (
         <View style={estilos.leyenda}>
           <View style={estilos.filaLeyenda}>
