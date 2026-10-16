@@ -349,4 +349,61 @@ export const estilosBalance = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+
+    subtituloCategorias: {
+    fontSize: 13,
+    color: '#718096',
+    marginTop: 2,
+    marginBottom: 18,
+  },
+  textoVacioCategorias: {
+    fontSize: 14,
+    color: '#A0AEC0',
+    paddingVertical: 10,
+  },
+  filaCategoria: {
+    marginBottom: 16,
+  },
+  filaCategoriaTextos: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  grupoNombreCategoria: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+  },
+  puntoCategoria: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 8,
+  },
+  nombreCategoria: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1A202C',
+  },
+  montoCategoria: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1A202C',
+  },
+  pctCategoria: {
+    fontSize: 12,
+    fontWeight: 'normal',
+    color: '#718096',
+  },
+  pistaBarra: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EDF2F7',
+    overflow: 'hidden',
+  },
+  rellenoBarra: {
+    height: 8,
+    borderRadius: 4,
+  },
 });

@@ -2,8 +2,8 @@ import { Operacion } from '../types/finanzas';
 import { generarReportePdf } from './generarReportePdf';
 import { sinCierreAutomatico } from './seguridadSesion';
 
-export async function exportarReporte(operaciones: Operacion[], mes: string) {
-  const archivo = await generarReportePdf(operaciones, mes);
+export async function exportarReporte(operaciones: Operacion[], mes: string, cliente?: string) {
+  const archivo = await generarReportePdf(operaciones, mes, cliente);
   const { default: Share } = await import('react-native-share');
     await sinCierreAutomatico(() =>
     Share.open({

@@ -1,11 +1,9 @@
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { SafeAreaView as SafeAreaContextView } from 'react-native-safe-area-context';
 import AjusteTeclado from '../components/atoms/AjusteTeclado';
-import { Text } from '../components/atoms/Texto';
-import { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import CampoTexto from '../components/atoms/CampoTexto.tsx';
-import BotonAtomo from '../components/atoms/BotonAtomo.tsx';
-import React from 'react';
+import CampoTexto from '../components/atoms/CampoTexto';
+import BotonAtomo from '../components/atoms/BotonAtomo';
 
 interface PropiedadesPantalla {
   navigation: any;

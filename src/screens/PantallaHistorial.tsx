@@ -51,7 +51,7 @@ const PantallaHistorial = ({ route }: BottomTabScreenProps<PestanasPrincipales, 
           if (exportacionOcupada.current) { return; }
           exportacionOcupada.current = true;
           setExportando(true);
-          try { await exportarReporte(copia, mesReporte); }
+          try { await exportarReporte(copia, mesReporte, nombre); }
           catch { Alert.alert('No se pudo exportar', 'Inténtalo nuevamente. Si acabas de actualizar la app, recompílala para habilitar la función de compartir PDF.'); }
           finally { exportacionOcupada.current = false; setExportando(false); }
         } },
