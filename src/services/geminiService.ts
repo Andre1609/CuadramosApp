@@ -9,6 +9,29 @@ export interface MensajeChat {
   parts: { text: string }[];
 }
 
+// Función auxiliar para reintentar la petición en caso de saturación (Error 503) o fallos de red
+const fetchConReintento = async (url: string, options: RequestInit, intentos = 3, espera = 2000): Promise<Response> => {
+  try {
+    const response = await fetch(url, options);
+    
+    // Si la API responde con un error 503 (Unavailable) y aún nos quedan intentos
+    if (response.status === 503 && intentos > 1) {
+      console.warn(`Servidor de Gemini saturado (503). Reintentando en ${espera / 1000}s...`);
+      await new Promise(resolve => setTimeout(resolve, espera));
+      return fetchConReintento(url, options, intentos - 1, espera * 1.5);
+    }
+    
+    return response;
+  } catch (error) {
+    if (intentos > 1) {
+      console.warn(`Fallo de red. Reintentando en ${espera / 1000}s...`, error);
+      await new Promise(resolve => setTimeout(resolve, espera));
+      return fetchConReintento(url, options, intentos - 1, espera * 1.5);
+    }
+    throw error;
+  }
+};
+
 export const consultarAsistenteFinanciero = async (historialMensajes: MensajeChat[]) => {
   try {
     const systemPrompt = `Eres "Cuadri", el asistente financiero inteligente de CuadramosApp en Perú.
@@ -37,7 +60,8 @@ Ejemplo de respuesta si se completó:
       ...historialMensajes
     ];
     
-    const response = await fetch(ENDPOINT, {
+    // Usamos nuestra función de reintento en lugar de fetch directo
+    const response = await fetchConReintento(ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,7 +69,7 @@ Ejemplo de respuesta si se completó:
       body: JSON.stringify({ contents: contentsFormatted }),
     });
 
-    const data = await response.json();
+    const data: any = await response.json();
 
     if (data.error) {
       console.error('Error de la API de Gemini:', data.error);
