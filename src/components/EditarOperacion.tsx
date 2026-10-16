@@ -1,8 +1,9 @@
 import Modal from './ModalSeguro';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AjusteTeclado from './atoms/AjusteTeclado';
 import { Text, TextInput } from './atoms/Texto';
 import React, { useRef, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Operacion, TipoOperacion, categoriasPorTipo, cuentasFinancieras as cuentas } from '../types/finanzas';
 import { useFinanzas } from '../context/FinanzasContext';
 import { montoACentimos } from '../utils/finanzas';
@@ -44,8 +45,9 @@ export default function EditarOperacion({ operacion, cerrar }: { operacion: Oper
   return (
     <Modal visible animationType="slide" onRequestClose={() => { if (!ocupado.current) { cerrar(); } }}>
       <SafeAreaView style={estilos.fondo}>
-        <KeyboardAvoidingView style={estilos.fondo} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={estilos.contenido} keyboardShouldPersistTaps="handled">
+        <AjusteTeclado>
+          <ScrollView contentContainerStyle={estilos.contenido} keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
             <Text style={estilos.titulo}>Editar operación</Text>
             <Text style={estilos.texto}>Fecha actual: {new Date(operacion.fecha).toLocaleDateString('es-PE')}</Text>
             <CampoFecha valor={fecha} cambiar={setFecha} deshabilitado={guardando} />
@@ -91,7 +93,7 @@ export default function EditarOperacion({ operacion, cerrar }: { operacion: Oper
               <Text style={estilos.texto}>Cancelar</Text>
             </TouchableOpacity>
           </ScrollView>
-        </KeyboardAvoidingView>
+        </AjusteTeclado>
       </SafeAreaView>
     </Modal>
   );

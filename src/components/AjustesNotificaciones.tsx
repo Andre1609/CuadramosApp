@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Modal from './ModalSeguro';
+import AjusteTeclado from './atoms/AjusteTeclado';
 import { Text, TextInput } from './atoms/Texto';
 import { useNotificaciones } from '../context/NotificacionesContext';
 import { abrirAjustesNotificaciones } from '../services/notificaciones';
@@ -44,7 +45,9 @@ export default function AjustesNotificaciones({ icono = false }: { icono?: boole
     </TouchableOpacity>
     <Modal visible={visible} animationType="slide" onRequestClose={() => { if (!estado.guardando) { setVisible(false); } }}>
       <SafeAreaView style={estilos.fondo}>
-        <ScrollView contentContainerStyle={estilos.contenido} keyboardShouldPersistTaps="handled">
+        <AjusteTeclado>
+        <ScrollView contentContainerStyle={estilos.contenido} keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
           <Text style={estilos.titulo} accessibilityRole="header">Notificaciones</Text>
           <Text>Elige qué recordatorios quieres recibir en este teléfono.</Text>
           <Text>{estado.permitido ? 'Permiso del teléfono: activado.' : 'Permiso del teléfono: pendiente o desactivado. Se solicitará al guardar.'}</Text>
@@ -78,6 +81,7 @@ export default function AjustesNotificaciones({ icono = false }: { icono?: boole
           <ContenidoResumenSemanal />
           <TouchableOpacity accessibilityRole="button" style={estilos.abrir} disabled={estado.guardando} onPress={() => setVisible(false)}><Text style={estilos.enlace}>Volver</Text></TouchableOpacity>
         </ScrollView>
+        </AjusteTeclado>
       </SafeAreaView>
     </Modal>
   </>;

@@ -38,6 +38,7 @@ const MisTabs = () => {
     <Tab.Navigator
       screenOptions={{
         headerShown: false, 
+        tabBarHideOnKeyboard: true,
         tabBarActiveTintColor: '#C8005B', 
         tabBarInactiveTintColor: '#666666',
         tabBarStyle: [estilosNavegacion.barra, { height: 48 + 40 * factor * fontScale + insets.bottom, paddingBottom: 10 + insets.bottom }],

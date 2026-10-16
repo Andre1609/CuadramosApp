@@ -5,6 +5,7 @@ import type { PestanasPrincipales } from '../types/navegacion';
 import Modal from '../components/ModalSeguro';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AjustesTexto from '../components/AjustesTexto';
+import AjusteTeclado from '../components/atoms/AjusteTeclado';
 import { useLecturaAmplia } from '../context/TextoContext';
 import { Text, TextInput } from '../components/atoms/Texto';
 import React, { useEffect, useRef, useState } from 'react';
@@ -74,7 +75,9 @@ const PantallaHistorial = ({ route }: BottomTabScreenProps<PestanasPrincipales, 
     <SafeAreaView edges={['top', 'left', 'right']} style={estilosHistorial.areaSegura}>
       <StatusBar barStyle="dark-content" />
 
-      <ScrollView ref={scroll} contentContainerStyle={estilosHistorial.contenedorScroll}>
+      <AjusteTeclado>
+      <ScrollView ref={scroll} contentContainerStyle={estilosHistorial.contenedorScroll}
+        keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
 
         <View style={estilosHistorial.encabezadoSuperior}>
           <View style={estilosHistorial.migasPan}>
@@ -184,6 +187,7 @@ const PantallaHistorial = ({ route }: BottomTabScreenProps<PestanasPrincipales, 
         </View>
 
       </ScrollView>
+      </AjusteTeclado>
 
       <AsistenteFlotante estiloBoton={estilosHistorial.botonChatbotFlotante} />
       <Modal

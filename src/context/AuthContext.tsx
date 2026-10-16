@@ -29,23 +29,31 @@ const aUsuario = (c: Cuenta): Usuario => ({
 const Contexto = createContext<Auth | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // La sesión vive solo en memoria: si la app se cierra, se pierde
   const [usuario, setUsuario] = useState<Usuario | null>(null);
 
   const cerrarSesion = useCallback(async () => {
-    await cambiarCuentaNotificaciones(null);
     setUsuario(null);
+    await cambiarCuentaNotificaciones(null);
   }, []);
 
-  // Cierre automático al salir de la app
   useEffect(() => {
+    let pausaEn: number | null = null;
     const sub = AppState.addEventListener('change', estado => {
-      if (estado === 'background' && !sesionPausada()) {
-        setUsuario(null);
+      if (estado === 'background') {
+        if (usuario && !sesionPausada()) { pausaEn = Date.now(); }
+        return;
+      }
+
+      if (estado === 'active' && pausaEn !== null) {
+        const tiempoFuera = Date.now() - pausaEn;
+        pausaEn = null;
+        if (tiempoFuera >= 60_000) {
+          cerrarSesion().catch(() => setUsuario(null));
+        }
       }
     });
     return () => sub.remove();
-  }, []);
+  }, [cerrarSesion, usuario]);
 
   const valor = useMemo<Auth>(() => {
     const nombre = usuario?.nombre ?? '';

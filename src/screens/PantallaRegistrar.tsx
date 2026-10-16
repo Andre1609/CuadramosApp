@@ -2,6 +2,7 @@ import AjustesNotificaciones from '../components/AjustesNotificaciones';
 import Modal from '../components/ModalSeguro';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AjustesTexto from '../components/AjustesTexto';
+import AjusteTeclado from '../components/atoms/AjusteTeclado';
 import { Text, TextInput } from '../components/atoms/Texto';
 import React, { useEffect, useState } from 'react';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -87,7 +88,9 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
     <SafeAreaView edges={['top', 'left', 'right']} style={estilosRegistrar.areaSegura}>
       <StatusBar barStyle="dark-content" />
 
-      <ScrollView contentContainerStyle={estilosRegistrar.contenedorScroll} keyboardShouldPersistTaps="handled">
+      <AjusteTeclado>
+      <ScrollView contentContainerStyle={estilosRegistrar.contenedorScroll} keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
         <View style={estilosRegistrar.encabezadoSuperior}>
           <View style={estilosRegistrar.migasPan}>
             <Text style={estilosRegistrar.textoMigaInactivo}>Mi billetera  {'>'}  </Text>
@@ -244,6 +247,7 @@ const PantallaRegistrar = ({ route, navigation }: BottomTabScreenProps<PestanasP
 
         </View>
       </ScrollView>
+      </AjusteTeclado>
 
       <AsistenteFlotante estiloBoton={estilosRegistrar.botonChatbotFlotante} />
       <Modal

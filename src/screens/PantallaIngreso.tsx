@@ -1,8 +1,9 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AjustesTexto from '../components/AjustesTexto';
+import AjusteTeclado from '../components/atoms/AjusteTeclado';
 import { Text } from '../components/atoms/Texto';
 import React, { useState } from 'react';
-import { View, Image, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Image, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import CampoTexto from '../components/atoms/CampoTexto';
 import CampoClave from '../components/atoms/CampoClave';
 import BotonAtomo from '../components/atoms/BotonAtomo';
@@ -33,12 +34,12 @@ const PantallaIngreso = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={estilos.areaSegura}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <AjusteTeclado>
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, backgroundColor: '#F4F4F4' }}
-          keyboardShouldPersistTaps="handled">
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          automaticallyAdjustKeyboardInsets>
           <View style={estilos.cabecera}>
             <Image
               source={require('../assets/compartamos-banco.png')}
@@ -79,7 +80,7 @@ const PantallaIngreso = ({ navigation }: any) => {
           </View>
         <AjustesTexto />
         </ScrollView>
-      </KeyboardAvoidingView>
+      </AjusteTeclado>
     </SafeAreaView>
   );
 };

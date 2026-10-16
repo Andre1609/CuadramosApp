@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Modal from './ModalSeguro';
+import AjusteTeclado from './atoms/AjusteTeclado';
 import { Text, TextInput } from './atoms/Texto';
 import { useFinanzas } from '../context/FinanzasContext';
 import { formatoMonto, montoACentimos } from '../utils/finanzas';
@@ -30,8 +31,9 @@ export default function MetaAhorro({ cerrar }: { cerrar: () => void }) {
   };
   return <Modal visible animationType="slide" onRequestClose={() => { if (!ocupado.current) { cerrar(); } }}>
     <SafeAreaView style={estilos.fondo}>
-      <KeyboardAvoidingView style={estilos.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView contentContainerStyle={estilos.contenido} keyboardShouldPersistTaps="handled">
+      <AjusteTeclado>
+        <ScrollView contentContainerStyle={estilos.contenido} keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
           <TouchableOpacity accessibilityRole="button" disabled={guardando} onPress={cerrar} style={estilos.volver}>
             <Text style={estilos.enlace}>‹ Volver a Inicio</Text>
           </TouchableOpacity>
@@ -61,13 +63,12 @@ export default function MetaAhorro({ cerrar }: { cerrar: () => void }) {
             <Text style={estilos.enlace}>Cancelar</Text>
           </TouchableOpacity>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </AjusteTeclado>
     </SafeAreaView>
   </Modal>;
 }
 
 const estilos = StyleSheet.create({
-  flex: { flex: 1 },
   fondo: { flex: 1, backgroundColor: '#F8F9FA' },
   contenido: { padding: 24, paddingBottom: 32, gap: 16 },
   volver: { minHeight: 48, justifyContent: 'center', paddingVertical: 10 },

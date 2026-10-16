@@ -1,9 +1,10 @@
 import Modal from './ModalSeguro';
+import AjusteTeclado from './atoms/AjusteTeclado';
 import { Text, TextInput } from './atoms/Texto';
 // src/components/AsistenteFlotante.tsx
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { Keyboard, Pressable, ScrollView, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NavigationProp } from '@react-navigation/native';
@@ -26,6 +27,7 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
   const { mensajes, paso, agregarMensajes, establecerPaso, cargandoIA, enviarMensajeUsuario } = useAsistente();
   
   const [visible, setVisible] = useState(false);
+  const [tecladoVisible, setTecladoVisible] = useState(false);
   const [textoInput, setTextoInput] = useState('');
   
   const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null);
@@ -43,6 +45,12 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
   }, [mensajes, cargandoIA]);
+
+  useEffect(() => {
+    const mostrar = Keyboard.addListener('keyboardDidShow', () => setTecladoVisible(true));
+    const ocultar = Keyboard.addListener('keyboardDidHide', () => setTecladoVisible(false));
+    return () => { mostrar.remove(); ocultar.remove(); };
+  }, []);
 
   const cerrar = () => {
     setVisible(false);
@@ -187,6 +195,7 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
         visible={visible}
         onRequestClose={cerrar}
       >
+       <AjusteTeclado>
        <View style={estilosAsistente.fondo}>
         <View
           style={[
@@ -200,7 +209,7 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
           style={estilosAsistente.fondoTocable}
           onPress={cerrar}
         />
-          <View style={estilosAsistente.panel}>
+          <View style={[estilosAsistente.panel, tecladoVisible && estilosAsistente.panelTeclado]}>
             <View style={estilosAsistente.cabecera}>
               <View style={estilosAsistente.iconoCabecera}>
                 <Icon name="robot-outline" size={24} color="#C8005B" />
@@ -227,6 +236,7 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
               style={estilosAsistente.contenido}
               contentContainerStyle={estilosAsistente.contenidoInterior}
               showsVerticalScrollIndicator={false}
+              keyboardDismissMode="on-drag"
               onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
             >
               {mensajes.map(mensaje => (
@@ -286,7 +296,7 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
               )}
             </ScrollView>
 
-            <ScrollView style={estilosAsistente.pie} keyboardShouldPersistTaps="handled">
+            {!tecladoVisible && <ScrollView style={estilosAsistente.pie} keyboardShouldPersistTaps="handled">
               <Text style={estilosAsistente.tituloPie}>Elige una opción</Text>
               <View style={estilosAsistente.opciones}>
                 {opciones.map(opcion => 'grupo' in opcion ? (
@@ -324,32 +334,34 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
                 </TouchableOpacity>
               )}
 
-              {/* Caja de texto para hablar con Gemini */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, borderTopWidth: 1, borderTopColor: '#E0E0E0', paddingTop: 8 }}>
-                <TextInput
-                  style={{ flex: 1, backgroundColor: '#F3F3F3', borderRadius: 20, paddingHorizontal: 15, paddingVertical: 8, color: '#333', fontSize: 14 }}
-                  placeholder="Pregunta o registra algo..."
-                  placeholderTextColor="#999"
-                  value={textoInput}
-                  onChangeText={setTextoInput}
-                  onSubmitEditing={enviarConsultaIA}
-                  autoCorrect={false}
-                  spellCheck={false}
-                  autoCapitalize="none"
-                  blurOnSubmit={false}
-                />
-                <TouchableOpacity 
-                  onPress={enviarConsultaIA} 
-                  disabled={cargandoIA}
-                  style={{ backgroundColor: '#C8005B', borderRadius: 20, width: 38, height: 38, justifyContent: 'center', alignItems: 'center', marginLeft: 8 }}
-                >
-                  <Icon name="send" size={18} color="#FFF" />
-                </TouchableOpacity>
-              </View>
+            </ScrollView>}
 
-            </ScrollView>
+            <View style={estilosAsistente.compositor}>
+              <TextInput
+                style={estilosAsistente.entradaCompositor}
+                placeholder="Pregunta o registra algo..."
+                placeholderTextColor="#999"
+                value={textoInput}
+                onChangeText={setTextoInput}
+                onSubmitEditing={enviarConsultaIA}
+                autoCorrect={false}
+                spellCheck={false}
+                autoCapitalize="none"
+                blurOnSubmit={false}
+              />
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Enviar mensaje"
+                onPress={enviarConsultaIA}
+                disabled={cargandoIA}
+                style={[estilosAsistente.botonEnviar, cargandoIA && estilosAsistente.botonEnviarDeshabilitado]}
+              >
+                <Icon name="send" size={18} color="#FFF" />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
+       </AjusteTeclado>
       </Modal>
     </>
   );

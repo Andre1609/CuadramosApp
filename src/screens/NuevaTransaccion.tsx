@@ -1,4 +1,5 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AjusteTeclado from '../components/atoms/AjusteTeclado';
 import { Text } from '../components/atoms/Texto';
 import { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
@@ -44,7 +45,9 @@ const NuevaTransaccion = ({ navigation }: PropiedadesPantalla) => {
           <Text style={estilos.tituloPantalla}>Nuevo Registro</Text>
       </View>
 
-      <ScrollView style={estilos.contenedorPrincipal} contentContainerStyle={estilos.contenidoScroll}>
+      <AjusteTeclado>
+      <ScrollView style={estilos.contenedorPrincipal} contentContainerStyle={estilos.contenidoScroll}
+        keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
         <Text style={estilos.subtitulo}>Ingresa los detalles financieros.</Text>
 
         <Text style={estilos.etiqueta}>¿Qué registramos?</Text>
@@ -84,6 +87,7 @@ const NuevaTransaccion = ({ navigation }: PropiedadesPantalla) => {
           style={estilos.botonGuardar}
         />
       </ScrollView>
+      </AjusteTeclado>
     </SafeAreaView>
   );
 };
