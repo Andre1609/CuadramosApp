@@ -4,5 +4,7 @@ export const estilosReporte = {
   fuente: 9, interlineado: 13,
   columnas: [65, 135, 95, 78, 75, 75],
   magenta: [0.78, 0, 0.36] as const,
+  verde: [0.12, 0.56, 0.24] as const,
+  blanco: [1, 1, 1] as const,
   texto: [0.12, 0.16, 0.2] as const,
 };

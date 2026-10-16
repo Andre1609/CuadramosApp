@@ -79,3 +79,65 @@ export function movimientoVisual(op: Operacion) {
     colorMonto: ingreso ? '#1E8E3E' : '#C8005B',
   };
 }
+
+const mismoMes = (op: Operacion, fecha: Date) => {
+  const dia = new Date(op.fecha);
+  return (
+    dia.getMonth() === fecha.getMonth() &&
+    dia.getFullYear() === fecha.getFullYear()
+  );
+};
+
+export interface GastoCategoria {
+  categoria: string;
+  centimos: number;
+  porcentaje: number;
+}
+
+// Gastos del mes agrupados por categoría 
+// y la operación de egreso más grande del mes.
+export function gastosPorCategoria(
+  operaciones: Operacion[],
+  fecha = new Date(),
+  maxCategorias = 5,
+) {
+  const egresos = operaciones.filter(
+    op => op.tipo === 'egreso' && mismoMes(op, fecha),
+  );
+  const total = egresos.reduce((t, op) => t + op.montoCentimos, 0);
+
+  const porCategoria = new Map<string, number>();
+  egresos.forEach(op => {
+    porCategoria.set(
+      op.categoria,
+      (porCategoria.get(op.categoria) ?? 0) + op.montoCentimos,
+    );
+  });
+
+  const conocidas = [...porCategoria.entries()]
+    .filter(([categoria]) => categoria !== 'Otros')
+    .map(([categoria, centimos]) => ({ categoria, centimos }))
+    .sort((a, b) => b.centimos - a.centimos);
+  const otros = porCategoria.get('Otros') ?? 0;
+
+  const cabeza =
+    conocidas.length + (otros > 0 ? 1 : 0) <= maxCategorias
+      ? conocidas
+      : conocidas.slice(0, maxCategorias - 1);
+  const resto =
+    conocidas.slice(cabeza.length).reduce((t, c) => t + c.centimos, 0) + otros;
+  const lista =
+    resto > 0 ? [...cabeza, { categoria: 'Otros', centimos: resto }] : cabeza;
+
+  const categorias: GastoCategoria[] = lista.map(c => ({
+    ...c,
+    porcentaje: total > 0 ? (c.centimos / total) * 100 : 0,
+  }));
+
+  const mayor = egresos.reduce<Operacion | null>(
+    (max, op) => (max === null || op.montoCentimos > max.montoCentimos ? op : max),
+    null,
+  );
+
+  return { total, categorias, mayor };
+}

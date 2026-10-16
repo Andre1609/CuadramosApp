@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { estilosBalance } from '../styles/estilosBalance';
 
 import { useFinanzas } from '../context/FinanzasContext';
-import { formatoMonto, resumenMes } from '../utils/finanzas';
+import { formatoMonto, resumenMes, gastosPorCategoria } from '../utils/finanzas';
 
 import SelectorMes from '../components/SelectorMes';
 import IndicadorBalance from '../components/IndicadorBalance';
@@ -17,6 +17,8 @@ const PantallaBalance = () => {
   const { nombre, iniciales, usuario, cerrarSesion } = useAuth();
   const [mes, setMes] = useState(() => claveMes());
   const resumen = resumenMes(operaciones, inicioMes(mes));
+  const detalleGastos = gastosPorCategoria(operaciones, inicioMes(mes));
+  const coloresCategoria = ['#C8005B', '#FFB81C', '#5C5C99', '#E88AB4', '#A0AEC0'];
   const [modalUsuarioVisible, setModalUsuarioVisible] = useState(false);
 
   return (
@@ -89,9 +91,50 @@ const PantallaBalance = () => {
             </View>
             <Text style={estilosBalance.subtextoPequeño}>Ingresos menos egresos</Text>
           </View>
-
         </View>
 
+         <View style={estilosBalance.tarjetaBalance}>
+          <Text style={estilosBalance.tituloTarjeta}>Gastos por categoría</Text>
+          <Text style={estilosBalance.subtituloCategorias}>
+            En qué se fue tu dinero este mes
+          </Text>
+
+          {detalleGastos.categorias.length === 0 ? (
+            <Text style={estilosBalance.textoVacioCategorias}>
+              Aún no tienes gastos registrados en este mes.
+            </Text>
+          ) : (
+            detalleGastos.categorias.map((item, i) => {
+              const color =
+                item.categoria === 'Otros'
+                  ? '#A0AEC0'
+                  : coloresCategoria[i % coloresCategoria.length];
+              return (
+                <View key={item.categoria} style={estilosBalance.filaCategoria}>
+                  <View style={estilosBalance.filaCategoriaTextos}>
+                    <View style={estilosBalance.grupoNombreCategoria}>
+                      <View style={[estilosBalance.puntoCategoria, { backgroundColor: color }]} />
+                      <Text style={estilosBalance.nombreCategoria}>{item.categoria}</Text>
+                    </View>
+                    <Text style={estilosBalance.montoCategoria}>
+                      S/ {formatoMonto(item.centimos)}
+                      <Text style={estilosBalance.pctCategoria}>  {Math.round(item.porcentaje)}%</Text>
+                    </Text>
+                  </View>
+                  <View style={estilosBalance.pistaBarra}>
+                    <View
+                      style={[
+                        estilosBalance.rellenoBarra,
+                        { backgroundColor: color, width: `${Math.max(item.porcentaje, 2)}%` },
+                      ]}
+                    />
+                  </View>
+                </View>
+              );
+            })
+          )}
+        </View>
+        
         <Text style={estilosBalance.tituloPensado}>Pensado para ti</Text>
         <Text style={estilosBalance.subtituloPensado}>Ideas para cuadrar mejor tu dinero</Text>
 
@@ -112,6 +155,33 @@ const PantallaBalance = () => {
           <Text style={estilosBalance.montoSugerencia}>S/ {formatoMonto(resumen.gastosHormiga)}</Text>
           <Text style={estilosBalance.textoSugerencia}>{resumen.cantidadHormiga} compras pequeñas (menos de S/ 20) que se suman sin que lo notes.</Text>
         </View>
+
+                <View style={estilosBalance.tarjetaSugerencia}>
+          <View style={estilosBalance.filaSugerenciaCabecera}>
+            <Text style={estilosBalance.iconoSugerencia}>🧾</Text>
+            <Text style={estilosBalance.tituloSugerencia}>Mayor gasto del mes</Text>
+          </View>
+          {detalleGastos.mayor ? (
+            <>
+              <Text style={estilosBalance.montoSugerencia}>
+                S/ {formatoMonto(detalleGastos.mayor.montoCentimos)}
+              </Text>
+              <Text style={estilosBalance.textoSugerencia}>
+                {detalleGastos.mayor.concepto} · {detalleGastos.mayor.categoria} ·{' '}
+                {new Date(detalleGastos.mayor.fecha).toLocaleDateString('es-PE', {
+                  day: 'numeric',
+                  month: 'short',
+                })}
+              </Text>
+            </>
+          ) : (
+            <Text style={estilosBalance.textoSugerencia}>
+              Aún no tienes gastos registrados en este mes.
+            </Text>
+          )}
+        </View>
+
+
         <Text style={estilosBalance.textoNota}>
           Consulta tus movimientos para conocer cómo va tu mes.
         </Text>

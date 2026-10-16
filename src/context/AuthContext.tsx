@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { sesionPausada } from '../services/seguridadSesion';
 import { registrarCuenta, verificarCuenta, Cuenta } from '../services/cuentas';
@@ -26,22 +26,30 @@ const aUsuario = (c: Cuenta): Usuario => ({
 });
 
 const Contexto = createContext<Auth | null>(null);
+const TIEMPO_INICIO = 5 * 60 * 1000; // 5 minutos
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   // La sesión vive solo en memoria: si la app se cierra, se pierde
   const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const salioEn = useRef<number | null>(null);
 
   const cerrarSesion = useCallback(async () => {
     setUsuario(null);
   }, []);
 
-  // Cierre automático al salir de la app
   useEffect(() => {
     const sub = AppState.addEventListener('change', estado => {
-      if (estado === 'background' && !sesionPausada()) {
-        setUsuario(null);
+      if (estado === 'background') {
+        salioEn.current = sesionPausada() ? null : Date.now();
+      } else if (estado === 'active') {
+        const t = salioEn.current;
+        salioEn.current = null;
+        if (t !== null && Date.now() - t > TIEMPO_INICIO) {
+          setUsuario(null);
+        }
       }
     });
+
     return () => sub.remove();
   }, []);
 
@@ -67,6 +75,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const contexto = useContext(Contexto);
-  if (!contexto) { throw new Error('Falta AuthProvider.'); }
+  if (!contexto) {
+    throw new Error('Falta AuthProvider.');
+  }
   return contexto;
 }

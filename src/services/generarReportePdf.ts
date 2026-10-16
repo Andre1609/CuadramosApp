@@ -5,7 +5,7 @@ import { formatoMonto } from '../utils/finanzas';
 import { fechaTexto } from '../utils/fechas';
 import { estilosReporte as e } from '../styles/estilosReporte';
 
-export async function generarReportePdf(operaciones: Operacion[], mes: string) {
+export async function generarReportePdf(operaciones: Operacion[], mes: string, cliente?: string) {
   const reporte = prepararReporte(operaciones, mes);
   const pdf = await PDFDocument.create();
   const normal = await pdf.embedFont(StandardFonts.Helvetica);
@@ -14,11 +14,11 @@ export async function generarReportePdf(operaciones: Operacion[], mes: string) {
   // Helvetica incluye tildes y ñ. Símbolos no disponibles se sustituyen,
   // evitando que un emoji en el concepto impida exportar todo el reporte.
   const limpiar = (texto: string) => [...texto.normalize('NFC')].map(c =>
-    /\s/.test(c) ? ' ' : caracteres.has(c.codePointAt(0)!) ? c : '?').join('');
+    /\s/.test(c) ? ' ' : caracteres.has(c.codePointAt(0)!) ? c : '').join('');
   let pagina = pdf.addPage([e.ancho, e.alto]);
   let y = e.alto - e.margen;
-  const escribir = (texto: string, x: number, altura: number, fuerte = false, tamano = e.fuente) => {
-    pagina.drawText(limpiar(texto), { x, y: altura, size: tamano, font: fuerte ? negrita : normal, color: rgb(...e.texto) });
+  const escribir = (texto: string, x: number, altura: number, fuerte = false, tamano = e.fuente, color: readonly [number, number, number] = e.texto) => {
+    pagina.drawText(limpiar(texto), { x, y: altura, size: tamano, font: fuerte ? negrita : normal, color: rgb(...color) });
   };
   function encabezado() {
     pagina.drawRectangle({ x: e.margen, y: e.alto - 43, width: 5, height: 18, color: rgb(...e.magenta) });
@@ -28,13 +28,22 @@ export async function generarReportePdf(operaciones: Operacion[], mes: string) {
   }
   function nuevaPagina() { pagina = pdf.addPage([e.ancho, e.alto]); encabezado(); }
   function espacio(alto: number) { if (y - alto < 65) { nuevaPagina(); } }
-  function linea(texto: string, fuerte = false) { espacio(22); escribir(texto, e.margen, y, fuerte, 11); y -= 22; }
+  function linea(texto: string, fuerte = false, color: readonly [number, number, number] = e.texto) { espacio(22); escribir(texto, e.margen, y, fuerte, 11, color); y -= 22; }
   function envolver(texto: string, ancho: number): string[] {
+    const medir = (t: string) => normal.widthOfTextAtSize(t, e.fuente);
     const resultado: string[] = [];
     let actual = '';
-    for (const caracter of limpiar(texto)) {
-      if (normal.widthOfTextAtSize(actual + caracter, e.fuente) > ancho && actual) { resultado.push(actual); actual = ''; }
-      actual += caracter;
+    for (const palabra of limpiar(texto).split(' ')) {
+      const prueba = actual ? `${actual} ${palabra}` : palabra;
+      if (medir(prueba) <= ancho) { actual = prueba; continue; }
+      if (actual) { resultado.push(actual); actual = ''; }
+      // palabra más larga que la columna: se corta por letras
+      let trozo = '';
+      for (const c of palabra) {
+        if (medir(trozo + c) > ancho && trozo) { resultado.push(trozo); trozo = ''; }
+        trozo += c;
+      }
+      actual = trozo;
     }
     resultado.push(actual);
     return resultado;
@@ -45,13 +54,13 @@ export async function generarReportePdf(operaciones: Operacion[], mes: string) {
     function fila(etiqueta: string, importe: string, cabecera = false) {
       const alto = 28;
       pagina.drawRectangle({ x: e.margen, y: y - alto + 10, width: ancho, height: alto,
-        color: cabecera ? rgb(0.96, 0.93, 0.95) : rgb(1, 1, 1),
-        borderColor: rgb(0.85, 0.87, 0.9), borderWidth: 0.5 });
+        color: cabecera ? rgb(...e.magenta) : rgb(1, 1, 1),
+        borderColor: cabecera ? rgb(...e.magenta) : rgb(0.85, 0.87, 0.9), borderWidth: 0.5 });
       pagina.drawLine({ start: { x: e.margen + division, y: y + 10 },
-        end: { x: e.margen + division, y: y - alto + 10 }, color: rgb(0.85, 0.87, 0.9), thickness: 0.5 });
-      escribir(etiqueta, e.margen + 8, y - 7, cabecera);
+        end: { x: e.margen + division, y: y - alto + 10 }, color: cabecera ? rgb(...e.magenta): rgb(0.85, 0.87, 0.9), thickness: 0.5 });
+      escribir(etiqueta, e.margen + 8, y - 7, cabecera, e.fuente, cabecera ? e.blanco : e.texto);
       const fuente = cabecera ? negrita : normal;
-      escribir(importe, e.ancho - e.margen - 8 - fuente.widthOfTextAtSize(limpiar(importe), e.fuente), y - 7, cabecera);
+      escribir(importe, e.ancho - e.margen - 8 - fuente.widthOfTextAtSize(limpiar(importe), e.fuente), y - 7, cabecera, e.fuente, cabecera ? e.blanco : e.texto);
       y -= alto;
     }
     espacio(60);
@@ -63,9 +72,10 @@ export async function generarReportePdf(operaciones: Operacion[], mes: string) {
     y -= 14;
   }
   encabezado();
-  linea(`Generado: ${fechaTexto()} ${new Date().toLocaleTimeString('es-PE')}`);
+  if (cliente) { linea(`Cliente: ${cliente}`, true); }
+  linea(`Generado: ${fechaTexto()} ${new Date().toLocaleTimeString('es-PE')}`, true);
   linea(`${reporte.movimientos.length} operaciones | Moneda: soles peruanos (PEN)`);
-  linea('RESUMEN DEL PERIODO', true);
+  linea('RESUMEN DEL PERIODO', true, e.magenta);
   tablaResumen(['Concepto', 'Monto S/'], [
     ['Total de ingresos', formatoMonto(reporte.ingresos)],
     ['Total de egresos', formatoMonto(reporte.egresos)],
@@ -73,18 +83,22 @@ export async function generarReportePdf(operaciones: Operacion[], mes: string) {
   ]);
   linea('El resultado no incluye saldos de periodos anteriores.');
   y -= 12;
-  linea('GASTOS POR CATEGORÍA', true);
+  linea('GASTOS POR CATEGORÍA', true, e.magenta);
   tablaResumen(['Categoría', 'Total gastado S/'], reporte.categorias.length
-    ? reporte.categorias.map(([categoria, monto]) => [categoria, formatoMonto(monto)])
+    ? reporte.categorias.map(([categoria, monto]) => [
+      `${categoria}  (${Math.round((monto / reporte.egresos) * 100)}%)`,
+      formatoMonto(monto),
+    ])
     : [['Sin egresos registrados', formatoMonto(0)]]);
   y -= 12;
   espacio(80);
-  linea('DETALLE DE OPERACIONES', true);
+  linea('DETALLE DE OPERACIONES', true, e.magenta);
   function cabeceraTabla() {
-    pagina.drawRectangle({ x: e.margen, y: y - 6, width: 523, height: 23, color: rgb(0.96, 0.93, 0.95) });
+    pagina.drawRectangle({ x: e.margen, y: y - 6, width: 523, height: 23, color: rgb(...e.magenta) });
     let x = e.margen;
     ['Fecha', 'Concepto', 'Cuenta', 'Categoría', 'Ingreso S/', 'Egreso S/'].forEach((titulo, indice) => {
-      escribir(titulo, x + 3, y, true); x += e.columnas[indice];
+      const posicion = indice >= 4 ? x + e.columnas[indice] - 4 - negrita.widthOfTextAtSize(titulo, e.fuente) : x + 3;
+      escribir(titulo, posicion, y, true, e.fuente, e.blanco); x += e.columnas[indice];
     });
     y -= 25;
   }
@@ -103,7 +117,8 @@ export async function generarReportePdf(operaciones: Operacion[], mes: string) {
       lineas.forEach((celda, indice) => {
         const texto = celda[fila] ?? '';
         const posicion = indice >= 4 ? x + e.columnas[indice] - 4 - normal.widthOfTextAtSize(texto, e.fuente) : x + 3;
-        escribir(texto, posicion, y); x += e.columnas[indice];
+        const color = indice === 4 && texto !== '-' ? e.verde : indice === 5 && texto !== '-' ? e.magenta : e.texto;
+        escribir(texto, posicion, y, false, e.fuente, color); x += e.columnas[indice];
       });
       y -= e.interlineado;
     }
@@ -119,5 +134,5 @@ export async function generarReportePdf(operaciones: Operacion[], mes: string) {
   });
   pdf.setTitle(`CuadramosApp - ${reporte.periodo}`);
   pdf.setCreator('CuadramosApp');
-  return { base64: await pdf.saveAsBase64(), nombre: `CuadramosApp-${mes || 'todos-los-meses'}-${Date.now()}` };
+  return { base64: await pdf.saveAsBase64(), nombre: `CuadramosApp-${mes || 'reporte-financiero'}-${Date.now()}` };
 }

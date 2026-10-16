@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import CampoTexto from '../components/atoms/CampoTexto.tsx';
-import BotonAtomo from '../components/atoms/BotonAtomo.tsx';
+import CampoTexto from '../components/atoms/CampoTexto';
+import BotonAtomo from '../components/atoms/BotonAtomo';
 import React from 'react';
 
 interface PropiedadesPantalla {
