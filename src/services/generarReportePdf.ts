@@ -128,6 +128,179 @@ export async function generarReportePdf(operaciones: Operacion[], mes: string) {
     }
     y -= 14;
   }
+
+  type DatoGrafico = {
+    etiqueta: string;
+    monto: number;
+    color: readonly [number, number, number];
+  };
+
+  function dibujarGraficoBarras(titulo: string, datos: DatoGrafico[]) {
+    if (datos.length === 0) return;
+    espacio(260);
+
+    escribir(titulo, e.margen, y, true, 11);
+    y -= 38;
+    const alturaMaxima = 150;
+    const baseY = y - alturaMaxima - 12;
+
+    const anchoDisponible = e.ancho - e.margen * 2;
+    const separacion = anchoDisponible / datos.length;
+    const anchoBarra = Math.min(95, separacion * 0.42);
+
+    const montoMaximo = Math.max(1, ...datos.map(dato => dato.monto));
+    pagina.drawLine({
+      start: {
+        x: e.margen,
+        y: baseY,
+      },
+      end: {
+        x: e.ancho - e.margen,
+        y: baseY,
+      },
+      color: rgb(0.82, 0.85, 0.89),
+      thickness: 1,
+    });
+    datos.forEach((dato, indice) => {
+      const centroX = e.margen + separacion * (indice + 0.5);
+
+      const xBarra = centroX - anchoBarra / 2;
+
+      const alturaBarra =
+        (Math.max(0, dato.monto) / montoMaximo) * alturaMaxima;
+      if (alturaBarra > 0) {
+        pagina.drawRectangle({
+          x: xBarra,
+          y: baseY,
+          width: anchoBarra,
+          height: alturaBarra,
+          color: rgb(...dato.color),
+        });
+      }
+      const montoTexto = `S/ ${formatoMonto(dato.monto)}`;
+
+      const anchoMonto = normal.widthOfTextAtSize(
+        limpiar(montoTexto),
+        e.fuente,
+      );
+
+      escribir(
+        montoTexto,
+        centroX - anchoMonto / 2,
+        baseY + alturaBarra + 9,
+        true,
+      );
+      const etiqueta = limpiar(dato.etiqueta);
+
+      const anchoEtiqueta = normal.widthOfTextAtSize(etiqueta, e.fuente);
+
+      escribir(etiqueta, centroX - anchoEtiqueta / 2, baseY - 19);
+    });
+    y = baseY - 38;
+  }
+
+  function dibujarGraficoCircular(titulo: string, datos: DatoGrafico[]) {
+    const categorias = datos.filter(d => d.monto > 0);
+
+    const total = categorias.reduce((suma, dato) => suma + dato.monto, 0);
+
+    espacio(250);
+    escribir(titulo, e.margen, y, true, 11);
+    y -= 28;
+
+    if (total === 0) {
+      escribir('No hay egresos registrados.', e.margen, y);
+      y -= 35;
+      return;
+    }
+
+    const centroX = e.margen + 105;
+    const centroY = y - 100;
+    const radio = 85;
+
+    let anguloActual = -Math.PI / 2;
+
+    for (const dato of categorias) {
+      const anguloPorcion = (dato.monto / total) * Math.PI * 2;
+
+      if (categorias.length === 1) {
+        pagina.drawCircle({
+          x: centroX,
+          y: centroY,
+          size: radio,
+          color: rgb(...dato.color),
+        });
+      } else {
+        const pasos = Math.max(2, Math.ceil(anguloPorcion / (Math.PI / 90)));
+
+        const ruta: string[] = ['M 0 0'];
+
+        for (let i = 0; i <= pasos; i++) {
+          const angulo = anguloActual + (anguloPorcion * i) / pasos;
+
+          const x = Math.cos(angulo) * radio;
+          const puntoY = Math.sin(angulo) * radio;
+
+          ruta.push(`L ${x.toFixed(3)} ${puntoY.toFixed(3)}`);
+        }
+
+        ruta.push('Z');
+
+        pagina.drawSvgPath(ruta.join(' '), {
+          x: centroX,
+          y: centroY,
+          color: rgb(...dato.color),
+        });
+      }
+
+      anguloActual += anguloPorcion;
+    }
+
+    const xLeyenda = e.margen + 215;
+    let yLeyenda = y - 28;
+
+    for (const dato of categorias) {
+      pagina.drawRectangle({
+        x: xLeyenda,
+        y: yLeyenda - 2,
+        width: 11,
+        height: 11,
+        color: rgb(...dato.color),
+      });
+
+      let etiqueta = limpiar(dato.etiqueta);
+
+      const anchoMaximo = e.ancho - e.margen - xLeyenda - 85;
+
+      while (
+        etiqueta.length > 0 &&
+        normal.widthOfTextAtSize(etiqueta, e.fuente) > anchoMaximo
+      ) {
+        etiqueta = etiqueta.slice(0, -1);
+      }
+
+      escribir(etiqueta, xLeyenda + 17, yLeyenda);
+
+      const porcentaje = `${((dato.monto / total) * 100).toFixed(1)}%`;
+
+      const anchoPorcentaje = negrita.widthOfTextAtSize(
+        limpiar(porcentaje),
+        e.fuente,
+      );
+
+      escribir(
+        porcentaje,
+        e.ancho - e.margen - anchoPorcentaje,
+        yLeyenda,
+        true,
+      );
+
+      yLeyenda -= 23;
+    }
+
+    y -= 220;
+  }
+
   encabezado();
   linea(`Generado: ${fechaTexto()} ${new Date().toLocaleTimeString('es-PE')}`);
   linea(
@@ -154,6 +327,7 @@ export async function generarReportePdf(operaciones: Operacion[], mes: string) {
         ])
       : [['Sin egresos registrados', formatoMonto(0)]],
   );
+
   y -= 12;
   espacio(80);
   linea('DETALLE DE OPERACIONES', true);
@@ -231,6 +405,66 @@ export async function generarReportePdf(operaciones: Operacion[], mes: string) {
     )} | Egresos S/ ${formatoMonto(reporte.egresos)}`,
     true,
   );
+
+  nuevaPagina();
+
+  linea('ANÁLISIS GRÁFICO FINANCIERO', true);
+
+  if (reporte.movimientos.length === 0) {
+    linea('No hay movimientos para graficar.');
+  } else {
+    dibujarGraficoBarras('Comparación de ingresos y egresos', [
+      {
+        etiqueta: 'Ingresos',
+        monto: reporte.ingresos,
+        color: [0.12, 0.55, 0.3],
+      },
+      {
+        etiqueta: 'Egresos',
+        monto: reporte.egresos,
+        color: e.magenta,
+      },
+    ]);
+
+    const colores: ReadonlyArray<readonly [number, number, number]> = [
+      [0.78, 0.0, 0.36],
+      [0.22, 0.49, 0.84],
+      [0.16, 0.65, 0.43],
+      [0.96, 0.63, 0.18],
+      [0.55, 0.36, 0.78],
+      [0.55, 0.59, 0.65],
+    ];
+
+    const categoriasOrdenadas = [...reporte.categorias]
+      .filter(([, monto]) => monto > 0)
+      .sort((a, b) => b[1] - a[1]);
+
+    const datosCategorias: DatoGrafico[] = categoriasOrdenadas
+      .slice(0, 5)
+      .map(([categoria, monto], indice) => ({
+        etiqueta: categoria,
+        monto,
+        color: colores[indice],
+      }));
+
+    const montoOtras = categoriasOrdenadas
+      .slice(5)
+      .reduce((suma, [, monto]) => suma + monto, 0);
+
+    if (montoOtras > 0) {
+      datosCategorias.push({
+        etiqueta: 'Otras categorías',
+        monto: montoOtras,
+        color: colores[5],
+      });
+    }
+
+    dibujarGraficoCircular(
+      'Distribución de egresos por categoría',
+      datosCategorias,
+    );
+  }
+
   const paginas = pdf.getPages();
   paginas.forEach((hoja, indice) => {
     hoja.drawText(
