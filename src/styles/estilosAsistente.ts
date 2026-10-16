@@ -80,6 +80,7 @@ export const estilosAsistente = StyleSheet.create({
   },
   contenido: {
     flex: 1,
+    minHeight: 0,
     backgroundColor: '#FEFCFE',
   },
   contenidoInterior: {
@@ -201,15 +202,22 @@ export const estilosAsistente = StyleSheet.create({
   },
   pie: {
     flexGrow: 0,
+    flexShrink: 1,
     maxHeight: '50%',
     borderTopWidth: 1,
     borderTopColor: '#F0E8ED',
     backgroundColor: '#FFFFFF',
+  },
+  pieTeclado: {
+    maxHeight: '35%',
+  },
+  pieInterior: {
     paddingHorizontal: 12,
     paddingTop: 11,
     paddingBottom: 9,
   },
   compositor: {
+    flexShrink: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,

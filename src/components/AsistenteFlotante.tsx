@@ -53,6 +53,8 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
   }, []);
 
   const cerrar = () => {
+    Keyboard.dismiss();
+    setTecladoVisible(false);
     setVisible(false);
   };
 
@@ -186,7 +188,7 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
         style={estiloBoton}
         onPress={abrir}
       >
-        <Icon name="robot-outline" size={28} color="#C8005B" />
+        <Icon name="robot-happy-outline" size={28} color="#C8005B" />
       </TouchableOpacity>
 
       <Modal
@@ -212,7 +214,7 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
           <View style={[estilosAsistente.panel, tecladoVisible && estilosAsistente.panelTeclado]}>
             <View style={estilosAsistente.cabecera}>
               <View style={estilosAsistente.iconoCabecera}>
-                <Icon name="robot-outline" size={24} color="#C8005B" />
+                <Icon name="robot-happy-outline" size={24} color="#C8005B" />
               </View>
               <View style={estilosAsistente.textosCabecera}>
                 <Text style={estilosAsistente.titulo}>Cuadri, tu asistente</Text>
@@ -237,6 +239,8 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
               contentContainerStyle={estilosAsistente.contenidoInterior}
               showsVerticalScrollIndicator={false}
               keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
+              onLayout={() => scrollRef.current?.scrollToEnd({ animated: false })}
               onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
             >
               {mensajes.map(mensaje => (
@@ -249,7 +253,7 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
                 ) : (
                   <View key={mensaje.id} style={estilosAsistente.filaMensajeBot}>
                     <View style={estilosAsistente.avatarMensaje}>
-                      <Icon name="robot-outline" size={18} color="#C8005B" />
+                      <Icon name="robot-happy-outline" size={18} color="#C8005B" />
                     </View>
                     <View style={estilosAsistente.mensajeAsistente}>
                       {!!mensaje.texto && <Text style={estilosAsistente.textoMensajeAsistente}>{mensaje.texto}</Text>}
@@ -287,7 +291,7 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
               {cargandoIA && (
                 <View style={estilosAsistente.filaMensajeBot}>
                   <View style={estilosAsistente.avatarMensaje}>
-                    <Icon name="robot-outline" size={18} color="#C8005B" />
+                    <Icon name="robot-happy-outline" size={18} color="#C8005B" />
                   </View>
                   <View style={estilosAsistente.mensajeAsistente}>
                     <ActivityIndicator size="small" color="#C8005B" />
@@ -296,7 +300,11 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
               )}
             </ScrollView>
 
-            {!tecladoVisible && <ScrollView style={estilosAsistente.pie} keyboardShouldPersistTaps="handled">
+            <ScrollView
+              style={[estilosAsistente.pie, tecladoVisible && estilosAsistente.pieTeclado]}
+              contentContainerStyle={estilosAsistente.pieInterior}
+              keyboardShouldPersistTaps="handled"
+            >
               <Text style={estilosAsistente.tituloPie}>Elige una opción</Text>
               <View style={estilosAsistente.opciones}>
                 {opciones.map(opcion => 'grupo' in opcion ? (
@@ -334,12 +342,13 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
                 </TouchableOpacity>
               )}
 
-            </ScrollView>}
+            </ScrollView>
 
             <View style={estilosAsistente.compositor}>
               <TextInput
                 style={estilosAsistente.entradaCompositor}
                 placeholder="Pregunta o registra algo..."
+                accessibilityLabel="Mensaje para Cuadri"
                 placeholderTextColor="#999"
                 value={textoInput}
                 onChangeText={setTextoInput}
@@ -348,6 +357,7 @@ export default function AsistenteFlotante({ estiloBoton }: Props) {
                 spellCheck={false}
                 autoCapitalize="none"
                 blurOnSubmit={false}
+                returnKeyType="send"
               />
               <TouchableOpacity
                 accessibilityRole="button"
